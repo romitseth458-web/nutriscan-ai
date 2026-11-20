@@ -21,7 +21,7 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
                 AI Diet Recommendations
               </h2>
               <p className="mt-1.5 max-w-2xl text-sm text-[#475E50]">
-                Once a meal is analyzed, NutriScan AI generates calorie-saving swaps, high-protein
+                Once a meal is analyzed, RosoFood AI generates calorie-saving swaps, high-protein
                 enhancements, and vegetarian and non-vegetarian alternatives tailored to your dish.
               </p>
             </div>

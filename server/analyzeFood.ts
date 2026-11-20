@@ -347,7 +347,7 @@ export async function analyzeFoodImage(input: AnalyzeFoodInput): Promise<FoodAna
     },
   });
 
-  const systemInstruction = `You are a registered dietitian and computer-vision nutrition analyst for NutriScan AI.
+  const systemInstruction = `You are a registered dietitian and computer-vision nutrition analyst for RosoFood AI.
 Analyze the uploaded food or fruit photograph carefully and return structured nutritional estimates in JSON.
 
 Rules:
@@ -488,7 +488,7 @@ export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult
     },
   });
 
-  const systemInstruction = `You are a registered dietitian for NutriScan AI.
+  const systemInstruction = `You are a registered dietitian for RosoFood AI.
 Given a user-entered food, fruit, snack, beverage, or meal description (with optional portion size or count), return accurate structured nutritional estimates in JSON.
 
 Rules:

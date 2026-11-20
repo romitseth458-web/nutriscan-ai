@@ -168,9 +168,9 @@ export default function App() {
   }
 
   function handleShareMeal(scaled: FoodAnalysisResult) {
-    const summary = `${scaled.mealTitle} (${scaled.estimatedServingSizeGrams} g): ${scaled.totals.caloriesKcal} kcal · Protein ${scaled.totals.proteinGrams}g · Carbs ${scaled.totals.carbsGrams}g · Fat ${scaled.totals.fatGrams}g · Fiber ${scaled.totals.fiberGrams}g — Analyzed with NutriScan AI`;
+    const summary = `${scaled.mealTitle} (${scaled.estimatedServingSizeGrams} g): ${scaled.totals.caloriesKcal} kcal · Protein ${scaled.totals.proteinGrams}g · Carbs ${scaled.totals.carbsGrams}g · Fat ${scaled.totals.fatGrams}g · Fiber ${scaled.totals.fiberGrams}g — Analyzed with RosoFood AI`;
     void handleShareText(
-      `${scaled.mealTitle} — NutriScan AI`,
+      `${scaled.mealTitle} — RosoFood AI`,
       summary,
       'Nutrition summary & website link copied'
     );
@@ -278,7 +278,7 @@ export default function App() {
                     <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
                   </span>
                   <span className="font-display text-base font-bold text-[#0F1F16]">
-                    NutriScan AI
+                    RosoFood AI
                   </span>
                 </div>
                 <p className="mt-2.5 text-xs leading-relaxed text-[#5B7063]">
@@ -310,8 +310,8 @@ export default function App() {
                   type="button"
                   onClick={() =>
                     void handleShareText(
-                      'NutriScan AI — Food Calorie & Macro Estimator',
-                      'Check food & fruit calories, macros, and diet suggestions with NutriScan AI:',
+                      'RosoFood AI — Food Calorie & Macro Estimator',
+                      'Check food & fruit calories, macros, and diet suggestions with RosoFood AI:',
                       'Website link copied to clipboard'
                     )
                   }
@@ -322,7 +322,7 @@ export default function App() {
                 </button>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(
-                    `Check food & fruit calories, macros, and diet suggestions on NutriScan AI: ${typeof window !== 'undefined' ? window.location.origin : ''}`
+                    `Check food & fruit calories, macros, and diet suggestions on RosoFood AI: ${typeof window !== 'undefined' ? window.location.origin : ''}`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -335,7 +335,7 @@ export default function App() {
 
             <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#EEF3EF] pt-6 text-xs text-[#5B7063] sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-2">
-                <span>© {new Date().getFullYear()} NutriScan AI</span>
+                <span>© {new Date().getFullYear()} RosoFood AI</span>
                 <span aria-hidden="true">·</span>
                 <span className="font-medium text-[#0F1F16]">Made by Romit Seth</span>
               </div>

@@ -45,7 +45,7 @@ export function HowItWorksSection({ onOpenCalculator }: HowItWorksSectionProps) 
           <div className="max-w-2xl">
             <p className="text-xs font-medium text-[#15803D]">Built for Everyday Eating</p>
             <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#0F1F16]">
-              How NutriScan AI Works
+              How RosoFood AI Works
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-[#475E50]">
               No barcode scanning or manual ingredient typing required. Understand what is on your
@@ -95,7 +95,7 @@ export function HowItWorksSection({ onOpenCalculator }: HowItWorksSectionProps) 
               Recognizes Indian & Global Meals
             </p>
             <p className="mt-0.5 text-xs text-[#5B7063]">
-              If a dish looks visually ambiguous (such as thick curries or sauces), NutriScan asks a
+              If a dish looks visually ambiguous (such as thick curries or sauces), RosoFood asks a
               quick clarifying question before finalizing numbers.
             </p>
           </div>

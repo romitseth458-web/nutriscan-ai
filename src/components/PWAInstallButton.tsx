@@ -23,7 +23,7 @@ export function PWAInstallButton({
     if (isInstallable) {
       const accepted = await install();
       if (accepted && onInstalledToast) {
-        onInstalledToast('NutriScan AI installed on your device');
+        onInstalledToast('RosoFood AI installed on your device');
       }
       return;
     }
@@ -54,14 +54,14 @@ export function PWAInstallButton({
               <div className="flex items-center gap-2.5">
                 <img
                   src="/pwa-192x192.png"
-                  alt="NutriScan AI icon"
+                  alt="RosoFood AI icon"
                   className="h-8 w-8 rounded-lg"
                 />
                 <h2
                   id="pwa-install-guide-title"
                   className="font-display text-base font-bold text-[#0F1F16]"
                 >
-                  Install NutriScan AI
+                  Install RosoFood AI
                 </h2>
               </div>
               <button
@@ -76,7 +76,7 @@ export function PWAInstallButton({
 
             <div className="space-y-4 p-5 text-sm text-[#475E50]">
               <p className="text-xs leading-relaxed">
-                Install NutriScan AI on your home screen for full-screen camera scanning and fast
+                Install RosoFood AI on your home screen for full-screen camera scanning and fast
                 access to your Daily Food Tracker.
               </p>
 
@@ -134,7 +134,7 @@ export function PWAInstallButton({
                       <span className="font-mono font-semibold text-[#15803D]">3.</span>
                       <span>
                         Confirm <strong className="text-[#0F1F16]">Install</strong> to launch
-                        NutriScan like a native app.
+                        RosoFood like a native app.
                       </span>
                     </li>
                   </ol>
@@ -151,7 +151,7 @@ export function PWAInstallButton({
                       <span>
                         <strong className="text-[#0F1F16]">Chrome / Edge (Desktop):</strong> Click
                         the install icon on the right side of the address bar or open Browser Menu →{' '}
-                        <strong className="text-[#0F1F16]">Install NutriScan AI</strong>.
+                        <strong className="text-[#0F1F16]">Install RosoFood AI</strong>.
                       </span>
                     </li>
                     <li className="flex items-start gap-2">

@@ -11,16 +11,16 @@ const FAQS = [
     a: 'All visual calorie and macro values are practical estimates based on visible ingredients and typical portion densities. Hidden cooking oils, butter, dressings, or exact recipe weights can change totals, so you can use the portion multiplier (0.5x to 2x) or clarification box to refine results.',
   },
   {
-    q: 'Does NutriScan AI work for Indian home-cooked meals and mixed plates?',
+    q: 'Does RosoFood AI work for Indian home-cooked meals and mixed plates?',
     a: 'Yes. It identifies multi-item plates such as dal, sabzi, paneer curries, roti/chapati, rice, raita, salads, and international bowls, breaking down each visible item separately.',
   },
   {
     q: 'What happens if the AI cannot recognize a dish clearly?',
-    a: 'Instead of guessing blindly, NutriScan AI flags the result as needing clarification and asks a specific follow-up question where you can type a short note (for example, "chicken biryani with raita, medium bowl") and re-analyze.',
+    a: 'Instead of guessing blindly, RosoFood AI flags the result as needing clarification and asks a specific follow-up question where you can type a short note (for example, "chicken biryani with raita, medium bowl") and re-analyze.',
   },
   {
     q: 'Can anyone use this on mobile without installing an app?',
-    a: 'Yes. Open NutriScan AI in any mobile browser, tap Take Photo to use your phone camera directly, and bookmark or add the site to your home screen for quick daily meal logging.',
+    a: 'Yes. Open RosoFood AI in any mobile browser, tap Take Photo to use your phone camera directly, and bookmark or add the site to your home screen for quick daily meal logging.',
   },
 ];
 

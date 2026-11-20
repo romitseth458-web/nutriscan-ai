@@ -123,7 +123,7 @@ export function DailyTrackerSection({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `nutriscan-meal-history-${selectedDateKey}.csv`;
+    link.download = `rosofood-meal-history-${selectedDateKey}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

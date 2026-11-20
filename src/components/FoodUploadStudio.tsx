@@ -190,7 +190,7 @@ export function FoodUploadStudio({
                 Estimate meal calories and macros from one photo.
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[#475E50]">
-                Upload a photo of your plate or snap one with your camera. NutriScan AI detects
+                Upload a photo of your plate or snap one with your camera. RosoFood AI detects
                 visible ingredients, estimates portion weights in grams, breaks down macros, and
                 suggests tailored healthier swaps.
               </p>

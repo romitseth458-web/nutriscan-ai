@@ -29,7 +29,7 @@ export function Navbar({ onUploadClick, onShowToast }: NavbarProps) {
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#15803D] text-white">
             <Leaf className="h-4 w-4" aria-hidden="true" />
           </span>
-          <span className="font-display">NutriScan AI</span>
+          <span className="font-display">RosoFood AI</span>
         </a>
 
         {/* Zone 2: Concise single-line navigation links */}

@@ -22,8 +22,8 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'NutriScan AI',
-          short_name: 'NutriScan',
+          name: 'RosoFood AI',
+          short_name: 'RosoFood',
           description:
             'AI-powered food calorie estimator, macro analyzer, and daily nutrition tracker.',
           theme_color: '#16A34A',

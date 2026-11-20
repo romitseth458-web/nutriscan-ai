@@ -1,6 +1,6 @@
-# NutriScan AI — Food Calorie & Macro Estimator
+# RosoFood AI — Food Calorie & Macro Estimator
 
-NutriScan AI is a full-stack food nutrition analyzer built with React, TypeScript, Tailwind CSS, Node.js/Express, and the Gemini Vision API (`@google/genai`). Upload or capture a meal photo to identify visible ingredients, estimate portion sizes in grams, view macro breakdown charts, get tailored vegetarian and non-vegetarian diet suggestions, and log meals in your browser's Daily Food Tracker.
+RosoFood AI is a full-stack food nutrition analyzer built with React, TypeScript, Tailwind CSS, Node.js/Express, and the Gemini Vision API (`@google/genai`). Upload or capture a meal photo to identify visible ingredients, estimate portion sizes in grams, view macro breakdown charts, get tailored vegetarian and non-vegetarian diet suggestions, and log meals in your browser's Daily Food Tracker.
 
 ## Features
 
@@ -10,7 +10,7 @@ NutriScan AI is a full-stack food nutrition analyzer built with React, TypeScrip
 - **Nutrition Dashboard & Charts**: Displays calories (`kcal`), protein, carbohydrates, fat, fiber, serving size, a macro energy-split donut chart, daily target bars, and a per-item breakdown table.
 - **AI Diet Suggestions**: Provides healthier calorie-saving swaps, high-protein food boosters, and both vegetarian and non-vegetarian alternatives.
 - **Daily Food Tracker (LocalStorage)**: Saves meals locally by date (`nutriscan_daily_meals_v1`), totals daily macros against customizable targets (`nutriscan_daily_goals_v1`), and supports inspecting or deleting entries.
-- **Installable Progressive Web App (PWA)**: Includes Web App Manifest (`NutriScan AI` / `NutriScan`), 192x192 & 512x512 green-and-white icons, `vite-plugin-pwa` auto-updating service worker, offline fallback page (`/offline.html`), `NetworkOnly` protection for `/api/*`, and an in-app **Install App** button with Android & iOS installation guides.
+- **Installable Progressive Web App (PWA)**: Includes Web App Manifest (`RosoFood AI` / `RosoFood`), 192x192 & 512x512 green-and-white icons, `vite-plugin-pwa` auto-updating service worker, offline fallback page (`/offline.html`), `NetworkOnly` protection for `/api/*`, and an in-app **Install App** button with Android & iOS installation guides.
 
 ## Tech Stack
 

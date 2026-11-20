@@ -18,7 +18,7 @@ const PORT = Number(process.env.PORT) || 3000;
 app.use(express.json({ limit: '12mb' }));
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'nutriscan-ai' });
+  res.json({ ok: true, service: 'rosofood-ai' });
 });
 
 app.post('/api/analyze', async (req, res) => {
@@ -96,7 +96,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`NutriScan AI server listening on http://localhost:${PORT}`);
+    console.log(`RosoFood AI server listening on http://localhost:${PORT}`);
   });
 }
 
