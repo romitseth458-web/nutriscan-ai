@@ -75,12 +75,16 @@ export default function App() {
     setIsAnalyzing(true);
     setErrorMessage(null);
 
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 45_000);
+
     try {
       const response = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         body: JSON.stringify({
           imageBase64: image.base64,
           mimeType: image.mimeType,
@@ -88,9 +92,35 @@ export default function App() {
         }),
       });
 
-      const payload = (await response.json()) as FoodAnalysisResult & { error?: string };
+      const rawText = await response.text();
+      let payload: (FoodAnalysisResult & { error?: string }) | null = null;
+      if (rawText) {
+        try {
+          payload = JSON.parse(rawText) as FoodAnalysisResult & { error?: string };
+        } catch {
+          payload = null;
+        }
+      }
+
       if (!response.ok) {
-        throw new Error(payload.error || 'Failed to analyze food image.');
+        if (response.status === 413) {
+          throw new Error(
+            'The uploaded image is too large for the server. Please select a smaller photo.'
+          );
+        }
+        if (response.status === 504) {
+          throw new Error(
+            'The nutrition analysis request timed out. Please try again in a few seconds.'
+          );
+        }
+        throw new Error(
+          payload?.error ||
+            `Food analysis failed (HTTP ${response.status}). Please try again.`
+        );
+      }
+
+      if (!payload || typeof payload.identificationStatus !== 'string' || !payload.totals) {
+        throw new Error('Received an unexpected response format from the analysis service.');
       }
 
       setAnalysisResult(payload);
@@ -102,11 +132,14 @@ export default function App() {
       }
     } catch (error) {
       const msg =
-        error instanceof Error
-          ? error.message
-          : 'Unable to reach the nutrition analysis service.';
+        error instanceof DOMException && error.name === 'AbortError'
+          ? 'Food image analysis timed out after 45 seconds. Please check your connection and retry.'
+          : error instanceof Error
+            ? error.message
+            : 'Unable to reach the nutrition analysis service.';
       setErrorMessage(msg);
     } finally {
+      window.clearTimeout(timeoutId);
       setIsAnalyzing(false);
     }
   }
@@ -203,6 +236,9 @@ export default function App() {
               if (!img) {
                 setActivePreviewUrl(null);
               }
+              setAnalysisResult((prev) =>
+                prev && prev.identificationStatus !== 'identified' ? null : prev
+              );
             }}
             onAnalyze={handleAnalyzeFood}
             isAnalyzing={isAnalyzing}

@@ -156,15 +156,15 @@ export function FoodUploadStudio({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif"
         onChange={handleFileChange}
         className="sr-only"
-        aria-label="Upload JPG, JPEG, or PNG food image"
+        aria-label="Upload JPG, JPEG, PNG, or WebP food image"
       />
       <input
         ref={mobileCameraInputRef}
         type="file"
-        accept="image/jpeg,image/png"
+        accept="image/*"
         capture="environment"
         onChange={handleFileChange}
         className="sr-only"
@@ -231,7 +231,7 @@ export function FoodUploadStudio({
               </div>
 
               <p className="mt-3 text-xs text-[#7E6069]">
-                Accepts JPG, JPEG, and PNG up to 8 MB · Values saved locally in your browser
+                Accepts JPG, JPEG, PNG, and WebP up to 20 MB · Automatically optimized for fast upload
               </p>
             </div>
 

@@ -53,16 +53,33 @@ export function FoodExplorerSection({
 
     setIsAiEstimating(true);
     setAiError(null);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 35_000);
+
     try {
       const response = await fetch('/api/analyze-text', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({ query: text }),
       });
 
-      const payload = (await response.json()) as FoodAnalysisResult & { error?: string };
+      const rawText = await response.text();
+      let payload: (FoodAnalysisResult & { error?: string }) | null = null;
+      if (rawText) {
+        try {
+          payload = JSON.parse(rawText) as FoodAnalysisResult & { error?: string };
+        } catch {
+          payload = null;
+        }
+      }
+
       if (!response.ok) {
-        throw new Error(payload.error || 'Unable to estimate this food right now.');
+        throw new Error(payload?.error || 'Unable to estimate this food right now.');
+      }
+
+      if (!payload || typeof payload.identificationStatus !== 'string' || !payload.totals) {
+        throw new Error('Received an unexpected response format from the AI estimator.');
       }
 
       if (payload.identificationStatus === 'not_food') {
@@ -76,9 +93,14 @@ export function FoodExplorerSection({
       onInspectAnalysis(payload);
     } catch (err) {
       setAiError(
-        err instanceof Error ? err.message : 'Unable to estimate nutrition for this food.'
+        err instanceof DOMException && err.name === 'AbortError'
+          ? 'Estimation timed out. Please retry.'
+          : err instanceof Error
+            ? err.message
+            : 'Unable to estimate nutrition for this food.'
       );
     } finally {
+      window.clearTimeout(timeoutId);
       setIsAiEstimating(false);
     }
   }

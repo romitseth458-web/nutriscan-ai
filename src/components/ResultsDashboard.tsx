@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Info,
@@ -48,6 +48,11 @@ export function ResultsDashboard({
   });
   const [portionMultiplier, setPortionMultiplier] = useState<number>(1);
   const [justAdded, setJustAdded] = useState(false);
+
+  useEffect(() => {
+    setPortionMultiplier(1);
+    setJustAdded(false);
+  }, [analysis]);
 
   const scaledAnalysis = useMemo<FoodAnalysisResult | null>(() => {
     if (!analysis) return null;

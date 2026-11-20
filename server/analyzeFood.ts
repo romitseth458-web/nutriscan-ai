@@ -2,7 +2,7 @@ import { GoogleGenAI, Type, type Schema } from '@google/genai';
 import type { FoodAnalysisResult } from '../src/types/nutrition.ts';
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
-const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png']);
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 
 export class ValidationError extends Error {
   statusCode: number;
@@ -22,23 +22,62 @@ export class UpstreamApiError extends Error {
   }
 }
 
-function normalizeMimeType(mimeType: string): 'image/jpeg' | 'image/png' {
+function normalizeMimeType(mimeType: string): 'image/jpeg' | 'image/png' | 'image/webp' {
   const normalized = mimeType.trim().toLowerCase();
   if (!ALLOWED_MIME_TYPES.has(normalized)) {
     throw new ValidationError(
-      'Unsupported image format. Please upload a JPG, JPEG, or PNG image.'
+      'Unsupported image format. Please upload a JPG, JPEG, PNG, or WebP image.'
     );
   }
-  return normalized === 'image/png' ? 'image/png' : 'image/jpeg';
+  if (normalized === 'image/png') return 'image/png';
+  if (normalized === 'image/webp') return 'image/webp';
+  return 'image/jpeg';
 }
 
-function validateImageBytes(base64Data: string, mimeType: 'image/jpeg' | 'image/png'): string {
-  const cleaned = base64Data.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '').trim();
+function detectMimeFromBuffer(buffer: Buffer): 'image/jpeg' | 'image/png' | 'image/webp' | null {
+  if (buffer.length < 12) return null;
+
+  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  if (isJpeg) return 'image/jpeg';
+
+  const isPng =
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a;
+  if (isPng) return 'image/png';
+
+  const isWebp =
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50;
+  if (isWebp) return 'image/webp';
+
+  return null;
+}
+
+function validateAndDetectImage(
+  base64Data: string,
+  declaredMimeType: 'image/jpeg' | 'image/png' | 'image/webp'
+): { cleanBase64: string; resolvedMimeType: 'image/jpeg' | 'image/png' | 'image/webp' } {
+  const cleaned = base64Data
+    .replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '')
+    .replace(/\s+/g, '')
+    .trim();
+
   if (!cleaned) {
     throw new ValidationError('No image data was received.');
   }
 
-  // Approximate decoded size check before full decode
   const estimatedBytes = Math.floor((cleaned.length * 3) / 4);
   if (estimatedBytes > MAX_IMAGE_BYTES) {
     throw new ValidationError('Image exceeds the 8 MB maximum file size limit.');
@@ -58,26 +97,18 @@ function validateImageBytes(base64Data: string, mimeType: 'image/jpeg' | 'image/
     throw new ValidationError('Image exceeds the 8 MB maximum file size limit.');
   }
 
-  // Magic-byte verification so non-image files renamed to .jpg/.png are rejected
-  const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-  const isPng =
-    buffer[0] === 0x89 &&
-    buffer[1] === 0x50 &&
-    buffer[2] === 0x4e &&
-    buffer[3] === 0x47 &&
-    buffer[4] === 0x0d &&
-    buffer[5] === 0x0a &&
-    buffer[6] === 0x1a &&
-    buffer[7] === 0x0a;
-
-  if (mimeType === 'image/jpeg' && !isJpeg) {
-    throw new ValidationError('File content does not match a valid JPEG image.');
-  }
-  if (mimeType === 'image/png' && !isPng) {
-    throw new ValidationError('File content does not match a valid PNG image.');
+  const detectedMime = detectMimeFromBuffer(buffer);
+  if (!detectedMime) {
+    throw new ValidationError(
+      'Uploaded file is not a valid JPEG, PNG, or WebP image. Please try another photo.'
+    );
   }
 
-  return cleaned;
+  // Trust actual magic bytes if extension/mime metadata mismatched (common with mobile/WhatsApp saves)
+  return {
+    cleanBase64: cleaned,
+    resolvedMimeType: detectedMime || declaredMimeType,
+  };
 }
 
 const analysisResponseSchema: Schema = {
@@ -244,6 +275,87 @@ function roundInt(val: number): number {
   return Math.round(Number.isFinite(val) ? Math.max(0, val) : 0);
 }
 
+function parseModelJson(rawText: string): FoodAnalysisResult {
+  const cleaned = rawText
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  if (!cleaned) {
+    throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
+  }
+
+  try {
+    return JSON.parse(cleaned) as FoodAnalysisResult;
+  } catch {
+    const firstBrace = cleaned.indexOf('{');
+    const lastBrace = cleaned.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+      return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1)) as FoodAnalysisResult;
+    }
+    throw new SyntaxError('Model output was not valid JSON.');
+  }
+}
+
+interface ExtractedApiError {
+  status?: number;
+  apiStatus?: string;
+  message: string;
+}
+
+function extractErrorDetails(error: unknown, fallbackMsg: string): ExtractedApiError {
+  const errObj = error as { status?: number; statusCode?: number; code?: number; message?: string };
+  let status = errObj?.status ?? errObj?.statusCode;
+  let apiStatus: string | undefined;
+  let message = errObj?.message || fallbackMsg;
+
+  // Attempt to parse JSON payload embedded in SDK error message
+  try {
+    const firstBrace = message.indexOf('{');
+    if (firstBrace !== -1) {
+      const parsedErr = JSON.parse(message.slice(firstBrace)) as {
+        error?: { code?: number; message?: string; status?: string };
+      };
+      if (parsedErr?.error) {
+        if (typeof parsedErr.error.code === 'number' && !status) {
+          status = parsedErr.error.code;
+        }
+        if (parsedErr.error.status) {
+          apiStatus = parsedErr.error.status;
+        }
+        if (parsedErr.error.message) {
+          message = parsedErr.error.message;
+        }
+      }
+    }
+  } catch {
+    // Keep original message
+  }
+
+  if (!status) {
+    if (/429|RESOURCE_EXHAUSTED|quota/i.test(message)) status = 429;
+    else if (/503|UNAVAILABLE|overloaded|high demand/i.test(message)) status = 503;
+    else if (/403|PERMISSION_DENIED/i.test(message)) status = 403;
+    else if (/401|UNAUTHENTICATED/i.test(message)) status = 401;
+    else if (/404|NOT_FOUND/i.test(message)) status = 404;
+    else if (/API_KEY_INVALID|API key not valid/i.test(message)) status = 400;
+  }
+
+  return { status, apiStatus, message };
+}
+
+function isRetryableFailure(error: unknown, extracted: ExtractedApiError): boolean {
+  if (error instanceof SyntaxError) return true;
+  if (error instanceof UpstreamApiError && error.statusCode >= 500) return true;
+  const s = extracted.status;
+  if (s === 429 || s === 500 || s === 502 || s === 503 || s === 504) return true;
+  if (!s && /fetch|network|timeout|ECONNRESET|ETIMEDOUT|empty/i.test(extracted.message)) {
+    return true;
+  }
+  return false;
+}
+
 function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
   const status =
     raw.identificationStatus === 'needs_clarification' || raw.identificationStatus === 'not_food'
@@ -268,19 +380,38 @@ function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
       }))
     : [];
 
+  const sumItems = items.reduce(
+    (acc, item) => ({
+      portionGrams: acc.portionGrams + item.portionGrams,
+      caloriesKcal: acc.caloriesKcal + item.caloriesKcal,
+      proteinGrams: acc.proteinGrams + item.proteinGrams,
+      carbsGrams: acc.carbsGrams + item.carbsGrams,
+      fatGrams: acc.fatGrams + item.fatGrams,
+      fiberGrams: acc.fiberGrams + item.fiberGrams,
+    }),
+    { portionGrams: 0, caloriesKcal: 0, proteinGrams: 0, carbsGrams: 0, fatGrams: 0, fiberGrams: 0 }
+  );
+
+  const rawServingGrams = roundInt(raw.estimatedServingSizeGrams);
+  const rawCalories = roundInt(raw.totals?.caloriesKcal ?? 0);
+
   return {
     identificationStatus: status,
     confidence,
     clarificationQuestion: String(raw.clarificationQuestion || '').trim(),
-    mealTitle: String(raw.mealTitle || 'Analyzed Meal').trim(),
-    estimatedServingSizeGrams: roundInt(raw.estimatedServingSizeGrams),
-    servingDescription: String(raw.servingDescription || '').trim(),
+    mealTitle: String(raw.mealTitle || (items[0]?.name ? items[0].name : 'Analyzed Meal')).trim(),
+    estimatedServingSizeGrams:
+      rawServingGrams > 0 ? rawServingGrams : roundInt(sumItems.portionGrams),
+    servingDescription:
+      String(raw.servingDescription || '').trim() ||
+      (sumItems.portionGrams > 0 ? `Approx. ${roundInt(sumItems.portionGrams)} g serving` : ''),
     totals: {
-      caloriesKcal: roundInt(raw.totals?.caloriesKcal ?? 0),
-      proteinGrams: round1(raw.totals?.proteinGrams ?? 0),
-      carbsGrams: round1(raw.totals?.carbsGrams ?? 0),
-      fatGrams: round1(raw.totals?.fatGrams ?? 0),
-      fiberGrams: round1(raw.totals?.fiberGrams ?? 0),
+      caloriesKcal: rawCalories > 0 ? rawCalories : roundInt(sumItems.caloriesKcal),
+      proteinGrams:
+        round1(raw.totals?.proteinGrams ?? 0) || round1(sumItems.proteinGrams),
+      carbsGrams: round1(raw.totals?.carbsGrams ?? 0) || round1(sumItems.carbsGrams),
+      fatGrams: round1(raw.totals?.fatGrams ?? 0) || round1(sumItems.fatGrams),
+      fiberGrams: round1(raw.totals?.fiberGrams ?? 0) || round1(sumItems.fiberGrams),
     },
     items,
     dietSuggestions: {
@@ -318,6 +449,50 @@ function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
   };
 }
 
+function throwMappedUpstreamError(lastError: unknown, fallbackMessage: string): never {
+  if (lastError instanceof ValidationError) {
+    throw lastError;
+  }
+
+  const { status, apiStatus, message } = extractErrorDetails(lastError, fallbackMessage);
+
+  if (status === 429 || apiStatus === 'RESOURCE_EXHAUSTED') {
+    throw new UpstreamApiError(
+      'Gemini API quota or rate limit reached. Please wait a moment and try again, or check your quota in Settings > Secrets.',
+      429
+    );
+  }
+  if (status === 503 || apiStatus === 'UNAVAILABLE') {
+    throw new UpstreamApiError(
+      'The AI vision service is temporarily busy. Please try again in a few seconds.',
+      503
+    );
+  }
+  if (status === 401 || status === 403 || apiStatus === 'PERMISSION_DENIED') {
+    throw new UpstreamApiError(
+      'Gemini API authentication failed. Please verify GEMINI_API_KEY in Settings > Secrets.',
+      403
+    );
+  }
+  if (status === 400 && /API_KEY_INVALID|API key/i.test(message)) {
+    throw new UpstreamApiError(
+      'Gemini API key is invalid. Please update GEMINI_API_KEY in Settings > Secrets.',
+      400
+    );
+  }
+  if (status === 404 || apiStatus === 'NOT_FOUND') {
+    throw new UpstreamApiError(
+      'The configured Gemini model could not be reached. Please retry or check model configuration.',
+      502
+    );
+  }
+  if (lastError instanceof UpstreamApiError) {
+    throw lastError;
+  }
+
+  throw new UpstreamApiError(message, status && status >= 400 && status < 600 ? status : 502);
+}
+
 export interface AnalyzeFoodInput {
   imageBase64: string;
   mimeType: string;
@@ -328,13 +503,13 @@ export async function analyzeFoodImage(input: AnalyzeFoodInput): Promise<FoodAna
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
     throw new UpstreamApiError(
-      'Server Gemini API key is not configured. Add GEMINI_API_KEY in environment secrets.',
+      'Server Gemini API key is not configured. Add GEMINI_API_KEY in Settings > Secrets.',
       500
     );
   }
 
-  const normalizedMime = normalizeMimeType(input.mimeType);
-  const cleanBase64 = validateImageBytes(input.imageBase64, normalizedMime);
+  const declaredMime = normalizeMimeType(input.mimeType);
+  const { cleanBase64, resolvedMimeType } = validateAndDetectImage(input.imageBase64, declaredMime);
   const userClarification =
     typeof input.clarification === 'string' ? input.clarification.trim().slice(0, 300) : '';
 
@@ -381,7 +556,7 @@ Rules:
             parts: [
               {
                 inlineData: {
-                  mimeType: normalizedMime,
+                  mimeType: resolvedMimeType,
                   data: cleanBase64,
                 },
               },
@@ -395,29 +570,39 @@ Rules:
           },
         });
 
+        const blockReason = response.candidates?.[0]?.finishReason;
         const jsonText = (response.text ?? '').trim();
         if (!jsonText) {
+          if (blockReason && String(blockReason) !== 'STOP') {
+            throw new UpstreamApiError(
+              `Image analysis could not complete (${String(blockReason)}). Please try a clearer food photo.`,
+              422
+            );
+          }
           throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
         }
 
-        const parsed = JSON.parse(jsonText) as FoodAnalysisResult;
+        const parsed = parseModelJson(jsonText);
         return sanitizeResult(parsed);
       } catch (error: unknown) {
         lastError = error;
-        const errObj = error as { status?: number; message?: string };
-        const status = errObj?.status;
+        const extracted = extractErrorDetails(error, 'Failed to analyze food image with Gemini Vision.');
 
-        // Do not retry non-transient auth/input errors
-        if (status === 400 || status === 401 || status === 403 || status === 404) {
+        if (extracted.status === 400 || extracted.status === 401 || extracted.status === 403 || extracted.status === 404) {
           shouldTryNextModel = false;
           break;
         }
-        if (status === 503 || status === 429) {
+
+        if (isRetryableFailure(error, extracted)) {
           shouldTryNextModel = true;
+          if (attempt < 1) {
+            await sleep(450 * (attempt + 1));
+          }
+          continue;
         }
-        if (attempt < 1) {
-          await sleep(450 * (attempt + 1));
-        }
+
+        shouldTryNextModel = false;
+        break;
       }
     }
 
@@ -426,50 +611,14 @@ Rules:
     }
   }
 
-  const errObj = lastError as { status?: number; message?: string };
-  const status = errObj?.status;
-  let message = errObj?.message || 'Failed to analyze food image with Gemini Vision.';
-
-  // Extract inner message if the SDK returned a JSON error payload string
-  try {
-    const parsedErr = JSON.parse(message) as { error?: { message?: string; code?: number } };
-    if (parsedErr?.error?.message) {
-      message = parsedErr.error.message;
-    }
-  } catch {
-    // Keep original message
-  }
-
-  if (status === 429) {
-    throw new UpstreamApiError(
-      'Rate limit reached on the AI service. Please wait a moment and try again.',
-      429
-    );
-  }
-  if (status === 503) {
-    throw new UpstreamApiError(
-      'The AI vision model is experiencing temporary high demand. Please retry in a few seconds.',
-      503
-    );
-  }
-  if (status === 403 || status === 401) {
-    throw new UpstreamApiError(
-      'Gemini API authentication failed. Please verify GEMINI_API_KEY in Settings > Secrets.',
-      403
-    );
-  }
-  if (lastError instanceof UpstreamApiError || lastError instanceof ValidationError) {
-    throw lastError;
-  }
-
-  throw new UpstreamApiError(message, 502);
+  throwMappedUpstreamError(lastError, 'Failed to analyze food image with Gemini Vision.');
 }
 
 export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
     throw new UpstreamApiError(
-      'Server Gemini API key is not configured. Add GEMINI_API_KEY in environment secrets.',
+      'Server Gemini API key is not configured. Add GEMINI_API_KEY in Settings > Secrets.',
       500
     );
   }
@@ -522,23 +671,27 @@ Rules:
           throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
         }
 
-        const parsed = JSON.parse(jsonText) as FoodAnalysisResult;
+        const parsed = parseModelJson(jsonText);
         return sanitizeResult(parsed);
       } catch (error: unknown) {
         lastError = error;
-        const errObj = error as { status?: number; message?: string };
-        const status = errObj?.status;
+        const extracted = extractErrorDetails(error, 'Failed to estimate nutrition for this food.');
 
-        if (status === 400 || status === 401 || status === 403 || status === 404) {
+        if (extracted.status === 400 || extracted.status === 401 || extracted.status === 403 || extracted.status === 404) {
           shouldTryNextModel = false;
           break;
         }
-        if (status === 503 || status === 429) {
+
+        if (isRetryableFailure(error, extracted)) {
           shouldTryNextModel = true;
+          if (attempt < 1) {
+            await sleep(450 * (attempt + 1));
+          }
+          continue;
         }
-        if (attempt < 1) {
-          await sleep(450 * (attempt + 1));
-        }
+
+        shouldTryNextModel = false;
+        break;
       }
     }
 
@@ -547,34 +700,5 @@ Rules:
     }
   }
 
-  const errObj = lastError as { status?: number; message?: string };
-  const status = errObj?.status;
-  let message = errObj?.message || 'Failed to estimate nutrition for this food.';
-
-  try {
-    const parsedErr = JSON.parse(message) as { error?: { message?: string } };
-    if (parsedErr?.error?.message) {
-      message = parsedErr.error.message;
-    }
-  } catch {
-    // Keep original message
-  }
-
-  if (status === 429) {
-    throw new UpstreamApiError(
-      'Rate limit reached on the AI service. Please wait a moment and try again.',
-      429
-    );
-  }
-  if (status === 503) {
-    throw new UpstreamApiError(
-      'The AI service is experiencing temporary high demand. Please retry in a few seconds.',
-      503
-    );
-  }
-  if (lastError instanceof UpstreamApiError || lastError instanceof ValidationError) {
-    throw lastError;
-  }
-
-  throw new UpstreamApiError(message, 502);
+  throwMappedUpstreamError(lastError, 'Failed to estimate nutrition for this food.');
 }

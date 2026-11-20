@@ -15,6 +15,13 @@ async function readJsonBody(req: VercelRequest): Promise<Record<string, unknown>
   if (req.body && typeof req.body === 'object') {
     return req.body as Record<string, unknown>;
   }
+  if (typeof req.body === 'string') {
+    try {
+      return JSON.parse(req.body) as Record<string, unknown>;
+    } catch {
+      throw new ValidationError('Invalid JSON request body.', 400);
+    }
+  }
 
   const chunks: Buffer[] = [];
   for await (const chunk of req) {
@@ -24,7 +31,11 @@ async function readJsonBody(req: VercelRequest): Promise<Record<string, unknown>
   if (!raw) {
     return {};
   }
-  return JSON.parse(raw) as Record<string, unknown>;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch {
+    throw new ValidationError('Invalid JSON request body.', 400);
+  }
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

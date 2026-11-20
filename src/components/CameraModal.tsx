@@ -105,9 +105,15 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
     const file = new File([blob], `meal-capture-${Date.now()}.jpg`, {
       type: 'image/jpeg',
     });
-    const prepared = await prepareImageFromFile(file);
-    onCapture(prepared);
-    onClose();
+    try {
+      const prepared = await prepareImageFromFile(file);
+      onCapture(prepared);
+      onClose();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to prepare captured photo. Please retry.'
+      );
+    }
   }
 
   return (
