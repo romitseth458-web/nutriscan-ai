@@ -1,0 +1,130 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Private RosoFood AI user account profile and personal daily nutrition goals.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User display name.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User email address.",
+          "minLength": 3,
+          "maxLength": 254
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Optional profile avatar URL.",
+          "maxLength": 1000
+        },
+        "dailyGoals": {
+          "type": "object",
+          "description": "User daily calorie and macronutrient targets."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-update timestamp."
+        }
+      },
+      "required": ["uid", "displayName", "email", "dailyGoals", "createdAt", "updatedAt"]
+    },
+    "TrackedMeal": {
+      "title": "TrackedMeal",
+      "description": "A single analyzed meal or fruit entry logged privately to a user's food diary.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique meal entry identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the meal owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "Local calendar date key in YYYY-MM-DD format.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "loggedAtIso": {
+          "type": "string",
+          "description": "ISO-8601 timestamp when the meal was logged.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "mealCategory": {
+          "type": "string",
+          "enum": ["Breakfast", "Lunch", "Dinner", "Snack"],
+          "description": "Meal category for daily tracking."
+        },
+        "imageThumbnailDataUrl": {
+          "type": "string",
+          "description": "Optional compact JPEG thumbnail data URL.",
+          "maxLength": 80000
+        },
+        "analysis": {
+          "type": "object",
+          "description": "Structured Gemini Vision nutrition analysis payload."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "dateKey",
+        "loggedAtIso",
+        "mealCategory",
+        "imageThumbnailDataUrl",
+        "analysis",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user profile and daily nutrition targets for each authenticated user."
+    },
+    "/users/{userId}/meals/{mealId}": {
+      "schema": { "$ref": "#/entities/TrackedMeal" },
+      "description": "Private daily food diary entries scoped strictly to the owning user."
+    }
+  }
+}

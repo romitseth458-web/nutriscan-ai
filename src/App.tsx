@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Heart, Share2, WifiOff, X } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  Heart,
+  Loader2,
+  RefreshCw,
+  Share2,
+  WifiOff,
+  X,
+} from 'lucide-react';
 import { MotionConfig } from 'motion/react';
+import { useAuth } from './context/AuthContext';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { AuthScreen } from './components/AuthScreen';
 import { Navbar } from './components/Navbar';
 import { FoodUploadStudio } from './components/FoodUploadStudio';
 import { HowItWorksSection } from './components/HowItWorksSection';
@@ -11,6 +22,14 @@ import { DietSuggestionsSection } from './components/DietSuggestionsSection';
 import { DailyTrackerSection } from './components/DailyTrackerSection';
 import { FaqSection } from './components/FaqSection';
 import { GoalCalculatorModal } from './components/GoalCalculatorModal';
+import { ProfileModal } from './components/ProfileModal';
+import {
+  clearDayMealsForUser,
+  deleteMealForUser,
+  saveMealForUser,
+  saveUserDailyGoals,
+  subscribeToUserMeals,
+} from './services/userMealsService';
 import type {
   DailyNutritionGoals,
   FoodAnalysisResult,
@@ -18,15 +37,18 @@ import type {
   TrackedMealEntry,
 } from './types/nutrition';
 import type { PreparedFoodImage } from './utils/imageUtils';
-import {
-  getLocalDateKey,
-  loadDailyGoals,
-  loadTrackedMeals,
-  saveDailyGoals,
-  saveTrackedMeals,
-} from './utils/storage';
+import { DEFAULT_DAILY_GOALS, getLocalDateKey } from './utils/storage';
 
 export default function App() {
+  const {
+    user,
+    authReady,
+    userProfile,
+    resendVerificationEmail,
+    refreshAuthUser,
+    logout,
+  } = useAuth();
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const isOnline = useOnlineStatus();
 
@@ -37,18 +59,45 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isGoalCalcOpen, setIsGoalCalcOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isCheckingVerify, setIsCheckingVerify] = useState(false);
 
-  const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>(() => loadTrackedMeals());
-  const [dailyGoals, setDailyGoals] = useState<DailyNutritionGoals>(() => loadDailyGoals());
+  const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
+  const [dailyGoals, setDailyGoals] = useState<DailyNutritionGoals>(DEFAULT_DAILY_GOALS);
   const [selectedDateKey, setSelectedDateKey] = useState<string>(() => getLocalDateKey());
 
+  // Sync user's private daily goals from their Firestore profile
   useEffect(() => {
-    saveTrackedMeals(trackedMeals);
-  }, [trackedMeals]);
+    if (userProfile?.dailyGoals) {
+      setDailyGoals(userProfile.dailyGoals);
+    } else if (!user) {
+      setDailyGoals(DEFAULT_DAILY_GOALS);
+    }
+  }, [userProfile, user]);
 
+  // Clear state when user signs out or switches accounts, and attach private Firestore meal listener
   useEffect(() => {
-    saveDailyGoals(dailyGoals);
-  }, [dailyGoals]);
+    if (!authReady || !user) {
+      setTrackedMeals([]);
+      setSelectedImage(null);
+      setActivePreviewUrl(null);
+      setAnalysisResult(null);
+      setErrorMessage(null);
+      setIsProfileOpen(false);
+      return;
+    }
+
+    if (!user.emailVerified) {
+      setTrackedMeals([]);
+      return;
+    }
+
+    const unsubscribe = subscribeToUserMeals(user.uid, (meals) => {
+      setTrackedMeals(meals);
+    });
+
+    return () => unsubscribe();
+  }, [authReady, user, user?.uid, user?.emailVerified]);
 
   function showToast(message: string) {
     setToastMessage(message);
@@ -144,8 +193,13 @@ export default function App() {
     }
   }
 
-  function handleAddToTracker(category: MealCategory, scaledAnalysis: FoodAnalysisResult) {
-    if (scaledAnalysis.identificationStatus !== 'identified') return;
+  async function persistMealEntry(category: MealCategory, analysis: FoodAnalysisResult, thumb: string) {
+    if (!user) return;
+    if (!user.emailVerified) {
+      showToast('Please verify your email address first to save meals to your private diary.');
+      setIsProfileOpen(true);
+      return;
+    }
 
     const todayKey = getLocalDateKey();
     const newEntry: TrackedMealEntry = {
@@ -156,23 +210,62 @@ export default function App() {
       dateKey: todayKey,
       loggedAtIso: new Date().toISOString(),
       mealCategory: category,
-      imageThumbnailDataUrl: selectedImage?.thumbnailDataUrl || activePreviewUrl || '',
-      analysis: scaledAnalysis,
+      imageThumbnailDataUrl: thumb,
+      analysis,
     };
 
-    setTrackedMeals((prev) => [newEntry, ...prev]);
-    setSelectedDateKey(todayKey);
-    showToast(`Saved "${scaledAnalysis.mealTitle}" to Daily Diary`);
+    try {
+      await saveMealForUser(user.uid, newEntry);
+      setSelectedDateKey(todayKey);
+      showToast(`Saved "${analysis.mealTitle}" to your private diary`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to save meal right now.');
+    }
   }
 
-  function handleDeleteEntry(id: string) {
-    setTrackedMeals((prev) => prev.filter((item) => item.id !== id));
-    showToast('Meal entry removed from diary');
+  function handleAddToTracker(category: MealCategory, scaledAnalysis: FoodAnalysisResult) {
+    if (scaledAnalysis.identificationStatus !== 'identified') return;
+    void persistMealEntry(
+      category,
+      scaledAnalysis,
+      selectedImage?.thumbnailDataUrl || activePreviewUrl || ''
+    );
   }
 
-  function handleClearDay(dateKey: string) {
-    setTrackedMeals((prev) => prev.filter((item) => item.dateKey !== dateKey));
-    showToast(`Cleared entries for ${dateKey}`);
+  async function handleDeleteEntry(id: string) {
+    if (!user || !user.emailVerified) return;
+    try {
+      await deleteMealForUser(user.uid, id);
+      showToast('Meal entry removed from diary');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to delete meal entry.');
+    }
+  }
+
+  async function handleClearDay(dateKey: string) {
+    if (!user || !user.emailVerified) return;
+    const idsForDay = trackedMeals.filter((m) => m.dateKey === dateKey).map((m) => m.id);
+    if (idsForDay.length === 0) return;
+    try {
+      await clearDayMealsForUser(user.uid, idsForDay);
+      showToast(`Cleared entries for ${dateKey}`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to clear entries.');
+    }
+  }
+
+  async function handleUpdateGoals(newGoals: DailyNutritionGoals) {
+    setDailyGoals(newGoals);
+    if (!user || !user.emailVerified) {
+      showToast('Verify your email to save targets permanently to your account.');
+      return;
+    }
+    try {
+      await saveUserDailyGoals(user.uid, newGoals);
+      showToast(`Saved daily target: ${newGoals.caloriesKcal} kcal`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to save nutrition targets.');
+    }
   }
 
   function handleInspectEntry(entry: TrackedMealEntry) {
@@ -209,10 +302,126 @@ export default function App() {
     );
   }
 
+  async function handleRefreshVerifyBanner() {
+    setIsCheckingVerify(true);
+    try {
+      const ok = await refreshAuthUser();
+      showToast(
+        ok
+          ? 'Email verified! Your cloud meal diary is active.'
+          : 'Not verified yet. Please click the verification link in your email.'
+      );
+    } catch {
+      showToast('Unable to check verification status right now.');
+    } finally {
+      setIsCheckingVerify(false);
+    }
+  }
+
+  if (!authReady) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#FFF8F9] px-4 text-[#241118]">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#BE123C] text-white shadow-sm">
+          <Heart className="h-6 w-6 fill-current" aria-hidden="true" />
+        </div>
+        <div className="mt-4 flex items-center gap-2 text-sm font-medium text-[#644A52]">
+          <Loader2 className="h-4 w-4 animate-spin text-[#BE123C]" aria-hidden="true" />
+          Loading RosoFood AI...
+        </div>
+      </div>
+    );
+  }
+
+  // Strictly protect dashboard, scanner, and food history behind Firebase Authentication
+  if (!user) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <AuthScreen onShowToast={showToast} />
+        {toastMessage && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="fixed right-4 bottom-4 z-50 flex items-center gap-2.5 rounded-xl border border-[#BE123C]/25 bg-[#241118] px-4 py-3 text-sm font-medium text-white shadow-lg"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
+            <span>{toastMessage}</span>
+            <button
+              type="button"
+              onClick={() => setToastMessage(null)}
+              aria-label="Close notification"
+              className="ml-1 text-white/70 hover:text-white cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+      </MotionConfig>
+    );
+  }
+
+  const displayName =
+    userProfile?.displayName ||
+    user.displayName ||
+    user.email?.split('@')[0] ||
+    'RosoFood Member';
+  const email = userProfile?.email || user.email || '';
+
   return (
     <MotionConfig reducedMotion="user">
       <div id="top" className="min-h-screen flex flex-col bg-white text-[#241118]">
-        <Navbar onUploadClick={handleNavbarUploadClick} onShowToast={showToast} />
+        <Navbar
+          onUploadClick={handleNavbarUploadClick}
+          onShowToast={showToast}
+          userDisplayName={displayName}
+          userEmail={email}
+          userPhotoUrl={user.photoURL || undefined}
+          onOpenProfile={() => setIsProfileOpen(true)}
+          onLogout={() => void logout()}
+        />
+
+        {!user.emailVerified && (
+          <div
+            role="status"
+            className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-950"
+          >
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+                <span>
+                  Verify <strong>{email}</strong> to save meals and nutrition goals privately in
+                  Firebase Firestore.
+                </span>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    void resendVerificationEmail()
+                      .then(() => showToast(`Verification email sent to ${email}`))
+                      .catch((e) =>
+                        showToast(e instanceof Error ? e.message : 'Unable to send email')
+                      )
+                  }
+                  className="rounded-lg border border-amber-300 bg-white px-3 py-1 font-semibold text-amber-950 hover:bg-amber-100 cursor-pointer"
+                >
+                  Resend Email
+                </button>
+                <button
+                  type="button"
+                  disabled={isCheckingVerify}
+                  onClick={() => void handleRefreshVerifyBanner()}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#241118] px-3 py-1 font-semibold text-white hover:bg-[#3A1E28] disabled:opacity-50 cursor-pointer"
+                >
+                  <RefreshCw
+                    className={`h-3 w-3 ${isCheckingVerify ? 'animate-spin' : ''}`}
+                    aria-hidden="true"
+                  />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {!isOnline && (
           <div
@@ -259,21 +468,7 @@ export default function App() {
               scrollToSection('results');
             }}
             onQuickLogFood={(analysis, category) => {
-              const todayKey = getLocalDateKey();
-              const newEntry: TrackedMealEntry = {
-                id:
-                  typeof crypto !== 'undefined' && crypto.randomUUID
-                    ? crypto.randomUUID()
-                    : `meal-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                dateKey: todayKey,
-                loggedAtIso: new Date().toISOString(),
-                mealCategory: category,
-                imageThumbnailDataUrl: '',
-                analysis,
-              };
-              setTrackedMeals((prev) => [newEntry, ...prev]);
-              setSelectedDateKey(todayKey);
-              showToast(`Logged "${analysis.mealTitle}" to Daily Diary`);
+              void persistMealEntry(category, analysis, '');
             }}
           />
 
@@ -293,10 +488,10 @@ export default function App() {
             selectedDateKey={selectedDateKey}
             onChangeDateKey={setSelectedDateKey}
             dailyGoals={dailyGoals}
-            onUpdateGoals={setDailyGoals}
+            onUpdateGoals={(goals) => void handleUpdateGoals(goals)}
             onOpenCalculator={() => setIsGoalCalcOpen(true)}
-            onDeleteEntry={handleDeleteEntry}
-            onClearDay={handleClearDay}
+            onDeleteEntry={(id) => void handleDeleteEntry(id)}
+            onClearDay={(dateKey) => void handleClearDay(dateKey)}
             onInspectEntry={handleInspectEntry}
             onJumpToUpload={() => scrollToSection('analyzer')}
           />
@@ -304,7 +499,7 @@ export default function App() {
           <FaqSection />
         </main>
 
-        {/* Public Website Footer */}
+        {/* Footer */}
         <footer className="border-t border-[#EEDCE0] bg-white">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
             <div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
@@ -375,7 +570,7 @@ export default function App() {
                 <span aria-hidden="true">·</span>
                 <span className="font-medium text-[#241118]">Made by Romit Seth</span>
               </div>
-              <span>Meal history stays private in your browser LocalStorage.</span>
+              <span>Each account&apos;s meal diary is stored privately in Firebase Firestore.</span>
             </div>
           </div>
         </footer>
@@ -384,10 +579,17 @@ export default function App() {
           isOpen={isGoalCalcOpen}
           onClose={() => setIsGoalCalcOpen(false)}
           onApplyGoals={(newGoals) => {
-            setDailyGoals(newGoals);
-            showToast(`Updated daily target to ${newGoals.caloriesKcal} kcal`);
+            void handleUpdateGoals(newGoals);
             scrollToSection('daily-tracker');
           }}
+        />
+
+        <ProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => setIsProfileOpen(false)}
+          dailyGoals={dailyGoals}
+          totalLoggedMeals={trackedMeals.length}
+          onShowToast={showToast}
         />
 
         {/* Non-blocking success toast */}

@@ -1,6 +1,8 @@
-import {createRoot} from 'react-dom/client';
-import {registerSW} from 'virtual:pwa-register';
+import { createRoot } from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
+import { AuthProvider } from './context/AuthContext.tsx';
 import './index.css';
 
 registerSW({
@@ -15,4 +17,10 @@ registerSW({
   },
 });
 
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <ErrorBoundary>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </ErrorBoundary>
+);
