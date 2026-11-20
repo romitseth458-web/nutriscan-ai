@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Leaf, Menu, X } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   onUploadClick: () => void;
+  onShowToast?: (message: string) => void;
 }
 
 const NAV_LINKS = [
@@ -13,7 +15,7 @@ const NAV_LINKS = [
   { href: '#faq', label: 'FAQ' },
 ];
 
-export function Navbar({ onUploadClick }: NavbarProps) {
+export function Navbar({ onUploadClick, onShowToast }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -85,6 +87,9 @@ export function Navbar({ onUploadClick }: NavbarProps) {
                 {link.label}
               </a>
             ))}
+            <div className="pt-2">
+              <PWAInstallButton variant="drawer" onInstalledToast={onShowToast} />
+            </div>
           </div>
         </nav>
       )}

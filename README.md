@@ -10,6 +10,7 @@ NutriScan AI is a full-stack food nutrition analyzer built with React, TypeScrip
 - **Nutrition Dashboard & Charts**: Displays calories (`kcal`), protein, carbohydrates, fat, fiber, serving size, a macro energy-split donut chart, daily target bars, and a per-item breakdown table.
 - **AI Diet Suggestions**: Provides healthier calorie-saving swaps, high-protein food boosters, and both vegetarian and non-vegetarian alternatives.
 - **Daily Food Tracker (LocalStorage)**: Saves meals locally by date (`nutriscan_daily_meals_v1`), totals daily macros against customizable targets (`nutriscan_daily_goals_v1`), and supports inspecting or deleting entries.
+- **Installable Progressive Web App (PWA)**: Includes Web App Manifest (`NutriScan AI` / `NutriScan`), 192x192 & 512x512 green-and-white icons, `vite-plugin-pwa` auto-updating service worker, offline fallback page (`/offline.html`), `NetworkOnly` protection for `/api/*`, and an in-app **Install App** button with Android & iOS installation guides.
 
 ## Tech Stack
 

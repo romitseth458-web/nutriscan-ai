@@ -107,9 +107,9 @@ export function FoodExplorerSection({
               Food &amp; Fruit Nutrition Explorer
             </h2>
             <p className="mt-1.5 text-sm leading-relaxed text-[#475E50]">
-              Browse nutrition facts for 36+ fresh and dried fruits, Indian meals, proteins, grains,
-              nuts, snacks, and drinks—or type any custom dish or fruit combination for instant AI
-              estimation.
+              Browse nutrition facts for 36+ fresh and dried fruits, authentic South Indian tiffins
+              &amp; meals, North Indian staples, proteins, grains, nuts, snacks, and drinks—or type
+              any custom dish or fruit combination for instant AI estimation.
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export function FoodExplorerSection({
                 type="text"
                 value={aiQuery}
                 onChange={(e) => setAiQuery(e.target.value)}
-                placeholder="e.g., 1 mango, 150g papaya, and 2 boiled eggs"
+                placeholder="e.g., 2 idlis, 1 masala dosa with sambar, and filter coffee"
                 className="min-h-[42px] flex-1 rounded-lg border border-[#D4DFD7] px-3 py-2 text-sm text-[#0F1F16] placeholder:text-[#7A8C81] focus:border-[#15803D] focus:outline-none"
               />
               <button
@@ -190,7 +190,7 @@ export function FoodExplorerSection({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter foods or fruits (e.g. mango, roti)..."
+              placeholder="Filter foods or fruits (e.g. dosa, idli, mango, roti)..."
               aria-label="Filter food and fruit directory"
               className="min-h-[40px] w-full rounded-lg border border-[#D4DFD7] bg-white py-2 pr-3 pl-9 text-xs text-[#0F1F16] placeholder:text-[#7A8C81] focus:border-[#15803D] focus:outline-none"
             />

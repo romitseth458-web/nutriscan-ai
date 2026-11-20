@@ -18,6 +18,7 @@ import {
   type PreparedFoodImage,
 } from '../utils/imageUtils';
 import { CameraModal } from './CameraModal';
+import { PWAInstallButton } from './PWAInstallButton';
 
 const HERO_IMAGE_PATH = '/src/assets/images/hero_mediterranean_bowl_1795193578143.jpg';
 
@@ -63,6 +64,7 @@ interface FoodUploadStudioProps {
   onClearError: () => void;
   analysisResult: FoodAnalysisResult | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onShowToast?: (message: string) => void;
 }
 
 export function FoodUploadStudio({
@@ -74,6 +76,7 @@ export function FoodUploadStudio({
   onClearError,
   analysisResult,
   fileInputRef,
+  onShowToast,
 }: FoodUploadStudioProps) {
   const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -223,6 +226,8 @@ export function FoodUploadStudio({
                   <Camera className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
                   Take Photo
                 </button>
+
+                <PWAInstallButton variant="hero" onInstalledToast={onShowToast} />
               </div>
 
               <p className="mt-3 text-xs text-[#5B7063]">

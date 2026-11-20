@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Leaf, Share2, X } from 'lucide-react';
+import { CheckCircle2, Leaf, Share2, WifiOff, X } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { Navbar } from './components/Navbar';
 import { FoodUploadStudio } from './components/FoodUploadStudio';
 import { HowItWorksSection } from './components/HowItWorksSection';
@@ -27,6 +28,7 @@ import {
 
 export default function App() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isOnline = useOnlineStatus();
 
   const [selectedImage, setSelectedImage] = useState<PreparedFoodImage | null>(null);
   const [activePreviewUrl, setActivePreviewUrl] = useState<string | null>(null);
@@ -177,7 +179,21 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <div id="top" className="min-h-screen flex flex-col bg-white text-[#0F1F16]">
-        <Navbar onUploadClick={handleNavbarUploadClick} />
+        <Navbar onUploadClick={handleNavbarUploadClick} onShowToast={showToast} />
+
+        {!isOnline && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-xs font-medium text-amber-950"
+          >
+            <span className="inline-flex items-center gap-2">
+              <WifiOff className="h-3.5 w-3.5 text-amber-700" aria-hidden="true" />
+              Offline Mode — Saved Daily Tracker meals and the Food &amp; Fruit Directory remain
+              available. Internet is required for new AI scans.
+            </span>
+          </div>
+        )}
 
         <main className="flex-1">
           <FoodUploadStudio
@@ -194,6 +210,7 @@ export default function App() {
             onClearError={() => setErrorMessage(null)}
             analysisResult={analysisResult}
             fileInputRef={fileInputRef}
+            onShowToast={showToast}
           />
 
           <HowItWorksSection onOpenCalculator={() => setIsGoalCalcOpen(true)} />
@@ -316,8 +333,12 @@ export default function App() {
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#EEF3EF] pt-6 text-xs text-[#5B7063] sm:flex-row">
-              <span>© {new Date().getFullYear()} NutriScan AI</span>
+            <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#EEF3EF] pt-6 text-xs text-[#5B7063] sm:flex-row sm:items-center">
+              <div className="flex flex-wrap items-center gap-2">
+                <span>© {new Date().getFullYear()} NutriScan AI</span>
+                <span aria-hidden="true">·</span>
+                <span className="font-medium text-[#0F1F16]">Made by Romit Seth</span>
+              </div>
               <span>Meal history stays private in your browser LocalStorage.</span>
             </div>
           </div>

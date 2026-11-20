@@ -351,7 +351,7 @@ export async function analyzeFoodImage(input: AnalyzeFoodInput): Promise<FoodAna
 Analyze the uploaded food or fruit photograph carefully and return structured nutritional estimates in JSON.
 
 Rules:
-1. Recognize ALL categories of food and ALL fruits: fresh fruits (apples, bananas, mangoes, papayas, melons, citrus, berries, kiwi, pomegranate, guava, grapes, custard apple, chikoo, lychee, dragon fruit, dates, etc.), Indian regional & home-cooked meals (roti, dal, rice, paneer, thali, idli, dosa, biryani, chaat), global meals, proteins, dairy, nuts/seeds, snacks, fast food, and beverages.
+1. Recognize ALL categories of food and ALL fruits: fresh fruits (apples, bananas, mangoes, papayas, melons, citrus, berries, kiwi, pomegranate, guava, grapes, custard apple, chikoo, lychee, dragon fruit, dates, etc.), South Indian meals & tiffins (idli, rava idli, plain/masala/rava dosa, pesarattu, adai, uttapam, medu vada, paniyaram, ven pongal, upma, appam with stew, idiyappam, puttu with kadala curry, bisibele bath, curd rice, lemon rice, puliyogare, sambar, rasam, avial, poriyal, malabar parotta, chettinad chicken, kerala fish curry, filter coffee), North & Pan-Indian dishes (roti, paratha, dal, rice, paneer, thali, rajma, chole, biryani, chaat, dhokla, pav bhaji), global meals, proteins, dairy, nuts/seeds, snacks, fast food, and beverages.
 2. Identify all distinct visible food or fruit items on the plate/bowl/table when multiple items are present.
 3. Estimate realistic portion sizes in grams using visual cues (plate diameter, fruit count/size, utensil scale, food density).
 4. Ensure the meal totals (caloriesKcal, proteinGrams, carbsGrams, fatGrams, fiberGrams) and estimatedServingSizeGrams are consistent with the sum of the detected items.
@@ -492,7 +492,7 @@ export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult
 Given a user-entered food, fruit, snack, beverage, or meal description (with optional portion size or count), return accurate structured nutritional estimates in JSON.
 
 Rules:
-1. Support EVERY kind of food and EVERY fruit (fresh fruits, dried fruits, juices, Indian home-cooked dishes, regional snacks, global cuisine, fast food, dairy, nuts/seeds, protein foods).
+1. Support EVERY kind of food and EVERY fruit (fresh fruits, dried fruits, juices, South Indian dishes like idli, dosa, pesarattu, uttapam, vada, pongal, appam, puttu, bisibele bath, curd rice, lemon rice, sambar, rasam, avial, poriyal, parotta, chettinad & kerala curries; North & Pan-Indian meals like roti, paratha, dal, paneer, chole, rajma, biryani, khichdi, dhokla, chaat; global cuisine, fast food, dairy, nuts/seeds, protein foods).
 2. Break mixed meals down into individual items in "items" (e.g., "2 rotis + 1 bowl dal" -> 2 separate items). For single items like "1 medium mango", include 1 item with its standard edible weight in grams.
 3. If the input is clearly NOT an edible food, fruit, or drink, set identificationStatus to "not_food", confidence to "low", zero out macros, and write a helpful clarificationQuestion.
 4. Ensure meal totals match the sum of items.
