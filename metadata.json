@@ -1,0 +1,6 @@
+{
+  "name": "NutriScan AI",
+  "description": "AI-powered food calorie estimator, macro analyzer, and daily nutrition tracker using Gemini Vision.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

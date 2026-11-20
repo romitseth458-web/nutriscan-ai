@@ -1,0 +1,64 @@
+import type { IncomingMessage, ServerResponse } from 'http';
+import { analyzeFoodImage, UpstreamApiError, ValidationError } from '../server/analyzeFood.ts';
+
+interface VercelRequest extends IncomingMessage {
+  body?: unknown;
+  method?: string;
+}
+
+interface VercelResponse extends ServerResponse {
+  status: (statusCode: number) => VercelResponse;
+  json: (data: unknown) => void;
+}
+
+async function readJsonBody(req: VercelRequest): Promise<Record<string, unknown>> {
+  if (req.body && typeof req.body === 'object') {
+    return req.body as Record<string, unknown>;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  const raw = Buffer.concat(chunks).toString('utf8');
+  if (!raw) {
+    return {};
+  }
+  return JSON.parse(raw) as Record<string, unknown>;
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed. Use POST.' });
+    return;
+  }
+
+  try {
+    const body = await readJsonBody(req);
+    const { imageBase64, mimeType, clarification } = body;
+
+    if (typeof imageBase64 !== 'string' || typeof mimeType !== 'string') {
+      res.status(400).json({ error: 'Request must include imageBase64 and mimeType.' });
+      return;
+    }
+
+    const result = await analyzeFoodImage({
+      imageBase64,
+      mimeType,
+      clarification: typeof clarification === 'string' ? clarification : undefined,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    if (error instanceof UpstreamApiError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    const message = error instanceof Error ? error.message : 'Unexpected server error.';
+    res.status(500).json({ error: message });
+  }
+}
