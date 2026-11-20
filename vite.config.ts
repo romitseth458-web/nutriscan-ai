@@ -25,8 +25,8 @@ export default defineConfig(() => {
           name: 'RosoFood AI',
           short_name: 'RosoFood',
           description:
-            'AI-powered food calorie estimator, macro analyzer, and daily nutrition tracker.',
-          theme_color: '#16A34A',
+            'Love-infused AI food calorie estimator, macro analyzer, and daily nutrition diary.',
+          theme_color: '#BE123C',
           background_color: '#FFFFFF',
           display: 'standalone',
           orientation: 'portrait-primary',

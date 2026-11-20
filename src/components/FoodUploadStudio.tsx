@@ -151,7 +151,7 @@ export function FoodUploadStudio({
   }
 
   return (
-    <section id="analyzer" className="border-b border-[#E2E8E4] bg-white">
+    <section id="analyzer" className="border-b border-[#EEDCE0] bg-white">
       {/* Hidden native inputs for file upload & mobile camera capture */}
       <input
         ref={fileInputRef}
@@ -176,23 +176,23 @@ export function FoodUploadStudio({
           {/* Left column: Hero Proposition + Upload Controls */}
           <div className="flex flex-col justify-between lg:col-span-6">
             <div>
-              <p className="text-xs font-medium tracking-wide text-[#15803D]">
-                Gemini Vision Nutrition Analysis
+              <p className="text-xs font-medium tracking-wide text-[#BE123C]">
+                Cooked With Love · Gemini Vision Nutrition
               </p>
               <h1
-                className="mt-3 font-display font-bold tracking-tight text-[#0F1F16]"
+                className="mt-3 font-display font-bold tracking-tight text-[#241118]"
                 style={{
                   fontSize: 'clamp(2.25rem, 4vw, 3.35rem)',
                   lineHeight: 1.08,
                   textWrap: 'balance',
                 }}
               >
-                Estimate meal calories and macros from one photo.
+                Nourish every meal you love with one photo.
               </h1>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#475E50]">
-                Upload a photo of your plate or snap one with your camera. RosoFood AI detects
-                visible ingredients, estimates portion weights in grams, breaks down macros, and
-                suggests tailored healthier swaps.
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#644A52]">
+                Upload a photo of your plate or snap a dish shared together. RosoFood AI detects
+                visible ingredients, estimates portion weights in grams, breaks down calories and
+                macros, and suggests caring, healthier swaps.
               </p>
 
               {/* Primary upload & camera action controls */}
@@ -201,7 +201,7 @@ export function FoodUploadStudio({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isAnalyzing}
-                  className="inline-flex min-h-[46px] items-center gap-2.5 rounded-xl bg-[#15803D] px-6 py-3 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#166534] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex min-h-[46px] items-center gap-2.5 rounded-xl bg-[#BE123C] px-6 py-3 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#9F1239] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <Upload className="h-4 w-4" aria-hidden="true" />
                   Upload Food Image
@@ -211,9 +211,9 @@ export function FoodUploadStudio({
                   type="button"
                   onClick={() => setIsCameraOpen(true)}
                   disabled={isAnalyzing}
-                  className="hidden sm:inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#D4DFD7] bg-[#F8FAF8] px-5 py-3 text-sm font-semibold text-[#0F1F16] transition-colors duration-150 hover:bg-[#EEF4EF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="hidden sm:inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-3 text-sm font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <Camera className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+                  <Camera className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                   Use Camera
                 </button>
 
@@ -221,23 +221,23 @@ export function FoodUploadStudio({
                   type="button"
                   onClick={() => mobileCameraInputRef.current?.click()}
                   disabled={isAnalyzing}
-                  className="inline-flex sm:hidden min-h-[46px] items-center gap-2 rounded-xl border border-[#D4DFD7] bg-[#F8FAF8] px-5 py-3 text-sm font-semibold text-[#0F1F16] transition-colors duration-150 hover:bg-[#EEF4EF] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex sm:hidden min-h-[46px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-3 text-sm font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  <Camera className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+                  <Camera className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                   Take Photo
                 </button>
 
                 <PWAInstallButton variant="hero" onInstalledToast={onShowToast} />
               </div>
 
-              <p className="mt-3 text-xs text-[#5B7063]">
+              <p className="mt-3 text-xs text-[#7E6069]">
                 Accepts JPG, JPEG, and PNG up to 8 MB · Values saved locally in your browser
               </p>
             </div>
 
             {/* Quick sample meals row */}
-            <div className="mt-8 border-t border-[#E2E8E4] pt-6">
-              <p className="text-xs font-medium text-[#475E50]">
+            <div className="mt-8 border-t border-[#EEDCE0] pt-6">
+              <p className="text-xs font-medium text-[#644A52]">
                 Try a sample meal or fruit platter to test live Gemini Vision analysis
               </p>
               <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
@@ -252,11 +252,11 @@ export function FoodUploadStudio({
                       onClick={() => void handleSelectSample(sample)}
                       className={`group flex flex-col overflow-hidden rounded-xl border text-left transition-colors duration-150 cursor-pointer ${
                         isActive
-                          ? 'border-[#15803D] bg-[#F2F8F4]'
-                          : 'border-[#E2E8E4] bg-[#F8FAF8] hover:border-[#B6CBB9] hover:bg-white'
+                          ? 'border-[#BE123C] bg-[#FDF2F4]'
+                          : 'border-[#EEDCE0] bg-[#FFF8F9] hover:border-[#D9A7B2] hover:bg-white'
                       }`}
                     >
-                      <div className="aspect-4/3 w-full overflow-hidden bg-[#EBF1EC]">
+                      <div className="aspect-4/3 w-full overflow-hidden bg-[#F9EBEE]">
                         <img
                           src={sample.imageUrl}
                           alt={sample.label}
@@ -264,7 +264,7 @@ export function FoodUploadStudio({
                           className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                         />
                       </div>
-                      <span className="truncate px-2.5 py-2 text-xs font-medium text-[#0F1F16]">
+                      <span className="truncate px-2.5 py-2 text-xs font-medium text-[#241118]">
                         {isLoadingThis ? 'Loading...' : sample.label}
                       </span>
                     </button>
@@ -285,8 +285,8 @@ export function FoodUploadStudio({
               onDrop={handleDrop}
               className={`relative flex flex-1 flex-col overflow-hidden rounded-2xl border transition-colors duration-150 ${
                 isDragging
-                  ? 'border-[#15803D] bg-[#EEF6F0]'
-                  : 'border-[#DCE5DE] bg-[#F8FAF8]'
+                  ? 'border-[#BE123C] bg-[#FDF2F4]'
+                  : 'border-[#EEDCE0] bg-[#FFF8F9]'
               }`}
             >
               {!selectedImage ? (
@@ -300,15 +300,15 @@ export function FoodUploadStudio({
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#EEF6F0] to-[#DCECE0]">
-                      <ImageIcon className="h-16 w-16 text-[#15803D]/40" aria-hidden="true" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FDF2F4] to-[#F7DCE2]">
+                      <ImageIcon className="h-16 w-16 text-[#BE123C]/40" aria-hidden="true" />
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0B1911]/85 via-[#0B1911]/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#241118]/85 via-[#241118]/30 to-transparent" />
 
                   <div className="relative z-10 p-6 sm:p-7">
-                    <div className="flex flex-col gap-4 rounded-xl border border-white/20 bg-[#0F1F16]/75 p-5 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-4 rounded-xl border border-white/20 bg-[#241118]/75 p-5 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="font-display text-base font-semibold">
                           Drop a meal photo here
@@ -321,7 +321,7 @@ export function FoodUploadStudio({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[#16A34A] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#15803D] whitespace-nowrap shrink-0 cursor-pointer"
+                        className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         Browse File
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -332,7 +332,7 @@ export function FoodUploadStudio({
               ) : (
                 <div className="flex flex-1 flex-col">
                   {/* Image preview frame with loading scan animation */}
-                  <div className="relative aspect-4/3 w-full overflow-hidden bg-[#0F1F16]">
+                  <div className="relative aspect-4/3 w-full overflow-hidden bg-[#241118]">
                     <img
                       src={selectedImage.previewDataUrl}
                       alt="Selected meal preview"
@@ -340,10 +340,10 @@ export function FoodUploadStudio({
                     />
 
                     {isAnalyzing && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0F1F16]/60 backdrop-blur-[2px]">
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-emerald-400/35 to-transparent animate-scan-beam" />
-                        <div className="relative z-10 flex flex-col items-center rounded-xl border border-white/15 bg-[#0F1F16]/85 px-6 py-4 text-center text-white shadow-lg">
-                          <Loader2 className="h-6 w-6 animate-spin text-emerald-400" aria-hidden="true" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#241118]/60 backdrop-blur-[2px]">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-rose-400/35 to-transparent animate-scan-beam" />
+                        <div className="relative z-10 flex flex-col items-center rounded-xl border border-white/15 bg-[#241118]/85 px-6 py-4 text-center text-white shadow-lg">
+                          <Loader2 className="h-6 w-6 animate-spin text-rose-400" aria-hidden="true" />
                           <p className="mt-2.5 font-display text-sm font-semibold">
                             Analyzing meal with Gemini Vision...
                           </p>
@@ -359,7 +359,7 @@ export function FoodUploadStudio({
                         type="button"
                         onClick={handleClearSelection}
                         aria-label="Remove selected image"
-                        className="absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#0F1F16]/75 text-white transition-colors hover:bg-[#0F1F16] cursor-pointer"
+                        className="absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-lg bg-[#241118]/75 text-white transition-colors hover:bg-[#241118] cursor-pointer"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -370,10 +370,10 @@ export function FoodUploadStudio({
                   <div className="flex flex-1 flex-col justify-between gap-4 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[#0F1F16]">
+                        <p className="truncate text-sm font-semibold text-[#241118]">
                           {selectedImage.fileName}
                         </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#475E50] tabular-nums">
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#644A52] tabular-nums">
                           <span>{selectedImage.mimeType === 'image/png' ? 'PNG' : 'JPEG'}</span>
                           <span aria-hidden="true">·</span>
                           <span>
@@ -389,7 +389,7 @@ export function FoodUploadStudio({
                           type="button"
                           disabled={isAnalyzing}
                           onClick={() => fileInputRef.current?.click()}
-                          className="min-h-[40px] rounded-lg border border-[#D4DFD7] bg-white px-3.5 py-2 text-xs font-medium text-[#0F1F16] hover:bg-[#F2F6F3] disabled:opacity-50 whitespace-nowrap cursor-pointer"
+                          className="min-h-[40px] rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-medium text-[#241118] hover:bg-[#FDF3F5] disabled:opacity-50 whitespace-nowrap cursor-pointer"
                         >
                           Replace
                         </button>
@@ -397,7 +397,7 @@ export function FoodUploadStudio({
                           type="button"
                           disabled={isAnalyzing}
                           onClick={() => void onAnalyze(selectedImage)}
-                          className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#15803D] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#166534] disabled:opacity-50 whitespace-nowrap cursor-pointer"
+                          className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap cursor-pointer"
                         >
                           <Sparkles className="h-4 w-4" aria-hidden="true" />
                           {isAnalyzing ? 'Analyzing...' : 'Analyze Food'}
@@ -435,12 +435,12 @@ export function FoodUploadStudio({
                               value={clarificationText}
                               onChange={(e) => setClarificationText(e.target.value)}
                               placeholder="e.g., Chicken tikka masala with 1 cup basmati rice"
-                              className="min-h-[40px] flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-[#0F1F16] placeholder:text-[#7A8C81] focus:border-[#15803D] focus:outline-none"
+                              className="min-h-[40px] flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
                             />
                             <button
                               type="submit"
                               disabled={!clarificationText.trim() || isAnalyzing}
-                              className="min-h-[40px] rounded-lg bg-[#0F1F16] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1E3A2A] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                              className="min-h-[40px] rounded-lg bg-[#241118] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3A1E28] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
                             >
                               Re-analyze with Details
                             </button>

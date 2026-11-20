@@ -95,18 +95,18 @@ export function FoodExplorerSection({
   }
 
   return (
-    <section id="food-directory" className="border-b border-[#E2E8E4] bg-[#F8FAF8]">
+    <section id="food-directory" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Header + AI Custom Any-Food / Any-Fruit Estimator */}
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-xl">
-            <p className="text-xs font-medium text-[#15803D]">
-              Every Fruit &amp; Everyday Food
+            <p className="text-xs font-medium text-[#BE123C]">
+              Every Fruit &amp; Favorite Dish
             </p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#0F1F16]">
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
               Food &amp; Fruit Nutrition Explorer
             </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#475E50]">
+            <p className="mt-1.5 text-sm leading-relaxed text-[#644A52]">
               Browse nutrition facts for 36+ fresh and dried fruits, authentic South Indian tiffins
               &amp; meals, North Indian staples, proteins, grains, nuts, snacks, and drinks—or type
               any custom dish or fruit combination for instant AI estimation.
@@ -115,9 +115,9 @@ export function FoodExplorerSection({
 
           <form
             onSubmit={handleAiTextEstimate}
-            className="w-full max-w-lg rounded-2xl border border-[#D4DFD7] bg-white p-3.5"
+            className="w-full max-w-lg rounded-2xl border border-[#E5CFD4] bg-white p-3.5"
           >
-            <label htmlFor="ai-food-query" className="block text-xs font-medium text-[#475E50]">
+            <label htmlFor="ai-food-query" className="block text-xs font-medium text-[#644A52]">
               Estimate any food, fruit, or meal combo by name
             </label>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row">
@@ -127,12 +127,12 @@ export function FoodExplorerSection({
                 value={aiQuery}
                 onChange={(e) => setAiQuery(e.target.value)}
                 placeholder="e.g., 2 idlis, 1 masala dosa with sambar, and filter coffee"
-                className="min-h-[42px] flex-1 rounded-lg border border-[#D4DFD7] px-3 py-2 text-sm text-[#0F1F16] placeholder:text-[#7A8C81] focus:border-[#15803D] focus:outline-none"
+                className="min-h-[42px] flex-1 rounded-lg border border-[#E5CFD4] px-3 py-2 text-sm text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
               />
               <button
                 type="submit"
                 disabled={isAiEstimating || !aiQuery.trim()}
-                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-lg bg-[#15803D] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#166534] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
               >
                 {isAiEstimating ? (
                   <>
@@ -172,8 +172,8 @@ export function FoodExplorerSection({
                 onClick={() => setActiveCategory(category)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   activeCategory === category
-                    ? 'bg-[#15803D] text-white'
-                    : 'border border-[#E2E8E4] bg-white text-[#475E50] hover:text-[#0F1F16]'
+                    ? 'bg-[#BE123C] text-white'
+                    : 'border border-[#EEDCE0] bg-white text-[#644A52] hover:text-[#241118]'
                 }`}
               >
                 {category}
@@ -183,7 +183,7 @@ export function FoodExplorerSection({
 
           <div className="relative w-full lg:w-72 shrink-0">
             <Search
-              className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#5B7063]"
+              className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#7E6069]"
               aria-hidden="true"
             />
             <input
@@ -192,19 +192,19 @@ export function FoodExplorerSection({
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter foods or fruits (e.g. dosa, idli, mango, roti)..."
               aria-label="Filter food and fruit directory"
-              className="min-h-[40px] w-full rounded-lg border border-[#D4DFD7] bg-white py-2 pr-3 pl-9 text-xs text-[#0F1F16] placeholder:text-[#7A8C81] focus:border-[#15803D] focus:outline-none"
+              className="min-h-[40px] w-full rounded-lg border border-[#E5CFD4] bg-white py-2 pr-3 pl-9 text-xs text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
             />
           </div>
         </div>
 
         {/* Catalog Grid */}
         {filteredItems.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-[#E2E8E4] bg-white p-8 text-center">
-            <Apple className="mx-auto h-7 w-7 text-[#15803D]" aria-hidden="true" />
-            <p className="mt-2 font-display text-sm font-semibold text-[#0F1F16]">
+          <div className="mt-6 rounded-2xl border border-[#EEDCE0] bg-white p-8 text-center">
+            <Apple className="mx-auto h-7 w-7 text-[#BE123C]" aria-hidden="true" />
+            <p className="mt-2 font-display text-sm font-semibold text-[#241118]">
               No matching item in quick directory for &ldquo;{searchQuery}&rdquo;
             </p>
-            <p className="mt-1 text-xs text-[#5B7063]">
+            <p className="mt-1 text-xs text-[#7E6069]">
               Use the &ldquo;Estimate with AI&rdquo; bar above to analyze any dish or fruit in the
               world.
             </p>
@@ -214,7 +214,7 @@ export function FoodExplorerSection({
                 setAiQuery(searchQuery);
                 setActiveCategory('All');
               }}
-              className="mt-4 min-h-[38px] rounded-lg bg-[#15803D] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#166534] cursor-pointer"
+              className="mt-4 min-h-[38px] rounded-lg bg-[#BE123C] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
             >
               Send &ldquo;{searchQuery}&rdquo; to AI Estimator
             </button>
@@ -226,44 +226,44 @@ export function FoodExplorerSection({
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col justify-between rounded-2xl border border-[#E2E8E4] bg-white p-5 transition-colors hover:border-[#B6CBB9]"
+                  className="flex flex-col justify-between rounded-2xl border border-[#EEDCE0] bg-white p-5 transition-colors hover:border-[#D9A7B2]"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium text-[#15803D]">{item.category}</p>
-                        <h3 className="mt-0.5 truncate font-display text-base font-semibold text-[#0F1F16]">
+                        <p className="text-[11px] font-medium text-[#BE123C]">{item.category}</p>
+                        <h3 className="mt-0.5 truncate font-display text-base font-semibold text-[#241118]">
                           {item.name}
                         </h3>
                       </div>
                       <div className="text-right font-mono tabular-nums shrink-0">
-                        <span className="text-lg font-bold text-[#0F1F16]">
+                        <span className="text-lg font-bold text-[#241118]">
                           {item.caloriesKcal}
                         </span>
-                        <span className="ml-1 text-xs text-[#5B7063]">kcal</span>
+                        <span className="ml-1 text-xs text-[#7E6069]">kcal</span>
                       </div>
                     </div>
 
-                    <p className="mt-1 text-xs text-[#5B7063] tabular-nums">
+                    <p className="mt-1 text-xs text-[#7E6069] tabular-nums">
                       {item.servingLabel} ({item.servingGrams} g)
                     </p>
 
-                    <div className="mt-3 grid grid-cols-4 gap-2 border-y border-[#EEF3EF] py-2.5 text-center font-mono text-xs tabular-nums">
+                    <div className="mt-3 grid grid-cols-4 gap-2 border-y border-[#F6E9EC] py-2.5 text-center font-mono text-xs tabular-nums">
                       <div>
-                        <p className="font-semibold text-[#0F1F16]">{item.proteinGrams}g</p>
-                        <p className="text-[11px] text-[#5B7063]">Protein</p>
+                        <p className="font-semibold text-[#241118]">{item.proteinGrams}g</p>
+                        <p className="text-[11px] text-[#7E6069]">Protein</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-[#0F1F16]">{item.carbsGrams}g</p>
-                        <p className="text-[11px] text-[#5B7063]">Carbs</p>
+                        <p className="font-semibold text-[#241118]">{item.carbsGrams}g</p>
+                        <p className="text-[11px] text-[#7E6069]">Carbs</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-[#0F1F16]">{item.fatGrams}g</p>
-                        <p className="text-[11px] text-[#5B7063]">Fat</p>
+                        <p className="font-semibold text-[#241118]">{item.fatGrams}g</p>
+                        <p className="text-[11px] text-[#7E6069]">Fat</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-[#0F1F16]">{item.fiberGrams}g</p>
-                        <p className="text-[11px] text-[#5B7063]">Fiber</p>
+                        <p className="font-semibold text-[#241118]">{item.fiberGrams}g</p>
+                        <p className="text-[11px] text-[#7E6069]">Fiber</p>
                       </div>
                     </div>
                   </div>
@@ -272,15 +272,15 @@ export function FoodExplorerSection({
                     <button
                       type="button"
                       onClick={() => onInspectAnalysis(analysis)}
-                      className="inline-flex min-h-[38px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#D4DFD7] bg-[#F8FAF8] px-3 py-1.5 text-xs font-semibold text-[#0F1F16] transition-colors hover:bg-[#EEF6F0] cursor-pointer"
+                      className="inline-flex min-h-[38px] flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-3 py-1.5 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] cursor-pointer"
                     >
-                      <Eye className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+                      <Eye className="h-3.5 w-3.5 text-[#BE123C]" aria-hidden="true" />
                       View Breakdown
                     </button>
                     <button
                       type="button"
                       onClick={() => onQuickLogFood(analysis, guessMealCategory(item))}
-                      className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg bg-[#15803D] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#166534] cursor-pointer"
+                      className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-lg bg-[#BE123C] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                       Log

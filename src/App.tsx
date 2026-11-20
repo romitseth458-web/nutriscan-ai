@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Leaf, Share2, WifiOff, X } from 'lucide-react';
+import { CheckCircle2, Heart, Share2, WifiOff, X } from 'lucide-react';
 import { MotionConfig } from 'motion/react';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { Navbar } from './components/Navbar';
@@ -129,12 +129,12 @@ export default function App() {
 
     setTrackedMeals((prev) => [newEntry, ...prev]);
     setSelectedDateKey(todayKey);
-    showToast(`Saved "${scaledAnalysis.mealTitle}" to Daily Tracker`);
+    showToast(`Saved "${scaledAnalysis.mealTitle}" to Daily Diary`);
   }
 
   function handleDeleteEntry(id: string) {
     setTrackedMeals((prev) => prev.filter((item) => item.id !== id));
-    showToast('Meal entry removed from history');
+    showToast('Meal entry removed from diary');
   }
 
   function handleClearDay(dateKey: string) {
@@ -178,7 +178,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div id="top" className="min-h-screen flex flex-col bg-white text-[#0F1F16]">
+      <div id="top" className="min-h-screen flex flex-col bg-white text-[#241118]">
         <Navbar onUploadClick={handleNavbarUploadClick} onShowToast={showToast} />
 
         {!isOnline && (
@@ -189,7 +189,7 @@ export default function App() {
           >
             <span className="inline-flex items-center gap-2">
               <WifiOff className="h-3.5 w-3.5 text-amber-700" aria-hidden="true" />
-              Offline Mode — Saved Daily Tracker meals and the Food &amp; Fruit Directory remain
+              Offline Mode — Saved Daily Diary meals and the Food &amp; Fruit Directory remain
               available. Internet is required for new AI scans.
             </span>
           </div>
@@ -237,7 +237,7 @@ export default function App() {
               };
               setTrackedMeals((prev) => [newEntry, ...prev]);
               setSelectedDateKey(todayKey);
-              showToast(`Logged "${analysis.mealTitle}" to Daily Tracker`);
+              showToast(`Logged "${analysis.mealTitle}" to Daily Diary`);
             }}
           />
 
@@ -269,41 +269,41 @@ export default function App() {
         </main>
 
         {/* Public Website Footer */}
-        <footer className="border-t border-[#E2E8E4] bg-white">
+        <footer className="border-t border-[#EEDCE0] bg-white">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
             <div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
               <div className="max-w-sm">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#15803D] text-white">
-                    <Leaf className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#BE123C] text-white">
+                    <Heart className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                   </span>
-                  <span className="font-display text-base font-bold text-[#0F1F16]">
+                  <span className="font-display text-base font-bold text-[#241118]">
                     RosoFood AI
                   </span>
                 </div>
-                <p className="mt-2.5 text-xs leading-relaxed text-[#5B7063]">
-                  Free visual food calorie and macronutrient estimator. All calorie and macro
-                  numbers are AI estimates for everyday wellness awareness, not medical advice.
+                <p className="mt-2.5 text-xs leading-relaxed text-[#7E6069]">
+                  Crafted with love for everyday mindful eating. All calorie and macro numbers are
+                  AI estimates for wellness awareness, not medical advice.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-xs font-medium text-[#475E50]">
-                <a href="#analyzer" className="hover:text-[#0F1F16]">
+              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-xs font-medium text-[#644A52]">
+                <a href="#analyzer" className="hover:text-[#241118]">
                   Food Scanner
                 </a>
-                <a href="#food-directory" className="hover:text-[#0F1F16]">
+                <a href="#food-directory" className="hover:text-[#241118]">
                   Foods &amp; Fruits
                 </a>
-                <a href="#results" className="hover:text-[#0F1F16]">
+                <a href="#results" className="hover:text-[#241118]">
                   Nutrition Dashboard
                 </a>
-                <a href="#diet-guide" className="hover:text-[#0F1F16]">
+                <a href="#diet-guide" className="hover:text-[#241118]">
                   Diet Suggestions
                 </a>
-                <a href="#daily-tracker" className="hover:text-[#0F1F16]">
-                  Daily Tracker
+                <a href="#daily-tracker" className="hover:text-[#241118]">
+                  Food Diary
                 </a>
-                <a href="#faq" className="hover:text-[#0F1F16]">
+                <a href="#faq" className="hover:text-[#241118]">
                   FAQ
                 </a>
                 <button
@@ -315,7 +315,7 @@ export default function App() {
                       'Website link copied to clipboard'
                     )
                   }
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#D4DFD7] bg-[#F8FAF8] px-3 py-1.5 text-xs font-semibold text-[#15803D] hover:bg-[#EEF6F0] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-3 py-1.5 text-xs font-semibold text-[#BE123C] hover:bg-[#FDF2F4] cursor-pointer"
                 >
                   <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
                   Copy Link
@@ -326,18 +326,18 @@ export default function App() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#15803D] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#166534]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#BE123C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239]"
                 >
                   Share on WhatsApp
                 </a>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#EEF3EF] pt-6 text-xs text-[#5B7063] sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#F6E9EC] pt-6 text-xs text-[#7E6069] sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-2">
                 <span>© {new Date().getFullYear()} RosoFood AI</span>
                 <span aria-hidden="true">·</span>
-                <span className="font-medium text-[#0F1F16]">Made by Romit Seth</span>
+                <span className="font-medium text-[#241118]">Made by Romit Seth</span>
               </div>
               <span>Meal history stays private in your browser LocalStorage.</span>
             </div>
@@ -359,9 +359,9 @@ export default function App() {
           <div
             role="status"
             aria-live="polite"
-            className="fixed right-4 bottom-4 z-50 flex items-center gap-2.5 rounded-xl border border-[#15803D]/25 bg-[#0F1F16] px-4 py-3 text-sm font-medium text-white shadow-lg"
+            className="fixed right-4 bottom-4 z-50 flex items-center gap-2.5 rounded-xl border border-[#BE123C]/25 bg-[#241118] px-4 py-3 text-sm font-medium text-white shadow-lg"
           >
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
             <span>{toastMessage}</span>
             <button
               type="button"

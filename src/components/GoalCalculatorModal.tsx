@@ -74,24 +74,24 @@ export function GoalCalculatorModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F1F16]/65 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#241118]/65 p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="goal-calc-title"
     >
-      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-[#E2E8E4] bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#E2E8E4] px-6 py-4">
+      <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-[#EEDCE0] bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#EEDCE0] px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <Calculator className="h-5 w-5 text-[#15803D]" aria-hidden="true" />
-            <h2 id="goal-calc-title" className="font-display text-base font-bold text-[#0F1F16]">
-              Personal Daily Calorie & Macro Calculator
+            <Calculator className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
+            <h2 id="goal-calc-title" className="font-display text-base font-bold text-[#241118]">
+              Personal Daily Calorie &amp; Macro Calculator
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close calculator"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#475E50] hover:bg-[#F2F6F3] cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#644A52] hover:bg-[#FDF3F5] cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -100,15 +100,15 @@ export function GoalCalculatorModal({
         <div className="space-y-5 p-6">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <div>
-              <span className="block text-xs font-medium text-[#475E50]">Sex</span>
-              <div className="mt-1.5 grid grid-cols-2 gap-1 rounded-lg bg-[#F2F6F3] p-1">
+              <span className="block text-xs font-medium text-[#644A52]">Sex</span>
+              <div className="mt-1.5 grid grid-cols-2 gap-1 rounded-lg bg-[#FDF3F5] p-1">
                 {(['male', 'female'] as const).map((val) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setSex(val)}
                     className={`rounded-md py-1.5 text-xs font-medium capitalize cursor-pointer ${
-                      sex === val ? 'bg-white text-[#0F1F16] shadow-xs' : 'text-[#475E50]'
+                      sex === val ? 'bg-white text-[#241118] shadow-xs' : 'text-[#644A52]'
                     }`}
                   >
                     {val}
@@ -118,48 +118,48 @@ export function GoalCalculatorModal({
             </div>
 
             <label className="block">
-              <span className="text-xs font-medium text-[#475E50]">Age (yrs)</span>
+              <span className="text-xs font-medium text-[#644A52]">Age (yrs)</span>
               <input
                 type="number"
                 min={14}
                 max={95}
                 value={age}
                 onChange={(e) => setAge(Number(e.target.value))}
-                className="mt-1.5 w-full rounded-lg border border-[#D4DFD7] px-3 py-2 font-mono text-sm text-[#0F1F16] tabular-nums focus:border-[#15803D] focus:outline-none"
+                className="mt-1.5 w-full rounded-lg border border-[#E5CFD4] px-3 py-2 font-mono text-sm text-[#241118] tabular-nums focus:border-[#BE123C] focus:outline-none"
               />
             </label>
 
             <label className="block">
-              <span className="text-xs font-medium text-[#475E50]">Weight (kg)</span>
+              <span className="text-xs font-medium text-[#644A52]">Weight (kg)</span>
               <input
                 type="number"
                 min={30}
                 max={250}
                 value={weightKg}
                 onChange={(e) => setWeightKg(Number(e.target.value))}
-                className="mt-1.5 w-full rounded-lg border border-[#D4DFD7] px-3 py-2 font-mono text-sm text-[#0F1F16] tabular-nums focus:border-[#15803D] focus:outline-none"
+                className="mt-1.5 w-full rounded-lg border border-[#E5CFD4] px-3 py-2 font-mono text-sm text-[#241118] tabular-nums focus:border-[#BE123C] focus:outline-none"
               />
             </label>
 
             <label className="block">
-              <span className="text-xs font-medium text-[#475E50]">Height (cm)</span>
+              <span className="text-xs font-medium text-[#644A52]">Height (cm)</span>
               <input
                 type="number"
                 min={120}
                 max={230}
                 value={heightCm}
                 onChange={(e) => setHeightCm(Number(e.target.value))}
-                className="mt-1.5 w-full rounded-lg border border-[#D4DFD7] px-3 py-2 font-mono text-sm text-[#0F1F16] tabular-nums focus:border-[#15803D] focus:outline-none"
+                className="mt-1.5 w-full rounded-lg border border-[#E5CFD4] px-3 py-2 font-mono text-sm text-[#241118] tabular-nums focus:border-[#BE123C] focus:outline-none"
               />
             </label>
           </div>
 
           <label className="block">
-            <span className="text-xs font-medium text-[#475E50]">Weekly Activity Level</span>
+            <span className="text-xs font-medium text-[#644A52]">Weekly Activity Level</span>
             <select
               value={activity}
               onChange={(e) => setActivity(e.target.value as ActivityLevel)}
-              className="mt-1.5 w-full rounded-lg border border-[#D4DFD7] bg-white px-3 py-2.5 text-sm text-[#0F1F16] focus:border-[#15803D] focus:outline-none"
+              className="mt-1.5 w-full rounded-lg border border-[#E5CFD4] bg-white px-3 py-2.5 text-sm text-[#241118] focus:border-[#BE123C] focus:outline-none"
             >
               {(Object.keys(ACTIVITY_MULTIPLIERS) as ActivityLevel[]).map((key) => (
                 <option key={key} value={key}>
@@ -171,8 +171,8 @@ export function GoalCalculatorModal({
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <span className="block text-xs font-medium text-[#475E50]">Goal</span>
-              <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg bg-[#F2F6F3] p-1">
+              <span className="block text-xs font-medium text-[#644A52]">Goal</span>
+              <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg bg-[#FDF3F5] p-1">
                 {(
                   [
                     { id: 'lose', label: 'Fat Loss' },
@@ -186,8 +186,8 @@ export function GoalCalculatorModal({
                     onClick={() => setObjective(item.id)}
                     className={`rounded-md px-2 py-2 text-xs font-medium cursor-pointer ${
                       objective === item.id
-                        ? 'bg-white text-[#0F1F16] shadow-xs'
-                        : 'text-[#475E50]'
+                        ? 'bg-white text-[#241118] shadow-xs'
+                        : 'text-[#644A52]'
                     }`}
                   >
                     {item.label}
@@ -197,8 +197,8 @@ export function GoalCalculatorModal({
             </div>
 
             <div>
-              <span className="block text-xs font-medium text-[#475E50]">Macro Preference</span>
-              <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg bg-[#F2F6F3] p-1">
+              <span className="block text-xs font-medium text-[#644A52]">Macro Preference</span>
+              <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg bg-[#FDF3F5] p-1">
                 {(
                   [
                     { id: 'balanced', label: 'Balanced' },
@@ -212,8 +212,8 @@ export function GoalCalculatorModal({
                     onClick={() => setMacroStyle(item.id)}
                     className={`rounded-md px-2 py-2 text-xs font-medium cursor-pointer ${
                       macroStyle === item.id
-                        ? 'bg-white text-[#0F1F16] shadow-xs'
-                        : 'text-[#475E50]'
+                        ? 'bg-white text-[#241118] shadow-xs'
+                        : 'text-[#644A52]'
                     }`}
                   >
                     {item.label}
@@ -224,40 +224,40 @@ export function GoalCalculatorModal({
           </div>
 
           {/* Calculated Daily Preview */}
-          <div className="rounded-xl border border-[#15803D]/25 bg-[#EEF6F0] p-4">
-            <p className="text-xs font-medium text-[#15803D]">
+          <div className="rounded-xl border border-[#BE123C]/25 bg-[#FDF2F4] p-4">
+            <p className="text-xs font-medium text-[#BE123C]">
               Recommended Daily Target (Mifflin-St Jeor Estimate)
             </p>
             <div className="mt-3 grid grid-cols-5 gap-2 text-center font-mono tabular-nums">
               <div>
-                <p className="text-lg font-bold text-[#0F1F16]">{computedGoals.caloriesKcal}</p>
-                <p className="text-[11px] text-[#475E50]">kcal</p>
+                <p className="text-lg font-bold text-[#241118]">{computedGoals.caloriesKcal}</p>
+                <p className="text-[11px] text-[#644A52]">kcal</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-[#0F1F16]">{computedGoals.proteinGrams}g</p>
-                <p className="text-[11px] text-[#475E50]">Protein</p>
+                <p className="text-lg font-bold text-[#241118]">{computedGoals.proteinGrams}g</p>
+                <p className="text-[11px] text-[#644A52]">Protein</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-[#0F1F16]">{computedGoals.carbsGrams}g</p>
-                <p className="text-[11px] text-[#475E50]">Carbs</p>
+                <p className="text-lg font-bold text-[#241118]">{computedGoals.carbsGrams}g</p>
+                <p className="text-[11px] text-[#644A52]">Carbs</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-[#0F1F16]">{computedGoals.fatGrams}g</p>
-                <p className="text-[11px] text-[#475E50]">Fat</p>
+                <p className="text-lg font-bold text-[#241118]">{computedGoals.fatGrams}g</p>
+                <p className="text-[11px] text-[#644A52]">Fat</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-[#0F1F16]">{computedGoals.fiberGrams}g</p>
-                <p className="text-[11px] text-[#475E50]">Fiber</p>
+                <p className="text-lg font-bold text-[#241118]">{computedGoals.fiberGrams}g</p>
+                <p className="text-[11px] text-[#644A52]">Fiber</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-[#E2E8E4] bg-[#F8FAF8] px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-[#EEDCE0] bg-[#FFF8F9] px-6 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[40px] rounded-lg px-4 py-2 text-sm font-medium text-[#475E50] hover:bg-[#EBF1EC] cursor-pointer"
+            className="min-h-[40px] rounded-lg px-4 py-2 text-sm font-medium text-[#644A52] hover:bg-[#F9EBEE] cursor-pointer"
           >
             Cancel
           </button>
@@ -267,10 +267,10 @@ export function GoalCalculatorModal({
               onApplyGoals(computedGoals);
               onClose();
             }}
-            className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#15803D] px-5 py-2 text-sm font-semibold text-white hover:bg-[#166534] cursor-pointer"
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
           >
             <Check className="h-4 w-4" aria-hidden="true" />
-            Apply to My Tracker
+            Apply to My Diary
           </button>
         </div>
       </div>

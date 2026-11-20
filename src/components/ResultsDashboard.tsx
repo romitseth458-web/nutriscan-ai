@@ -78,16 +78,16 @@ export function ResultsDashboard({
 
   if (!scaledAnalysis || scaledAnalysis.identificationStatus !== 'identified') {
     return (
-      <section id="results" className="border-b border-[#E2E8E4] bg-[#F8FAF8]">
+      <section id="results" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 rounded-2xl border border-[#E2E8E4] bg-white p-8 text-center sm:flex-row sm:text-left">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-2xl border border-[#EEDCE0] bg-white p-8 text-center sm:flex-row sm:text-left">
             <div className="max-w-xl">
-              <h2 className="font-display text-xl font-bold text-[#0F1F16]">
+              <h2 className="font-display text-xl font-bold text-[#241118]">
                 Nutrition Dashboard
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#475E50]">
+              <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
                 Upload a meal photo or select a sample dish above and click{' '}
-                <strong className="font-semibold text-[#0F1F16]">Analyze Food</strong> to view
+                <strong className="font-semibold text-[#241118]">Analyze Food</strong> to view
                 calorie totals, macronutrient breakdown charts, serving weight estimates, and
                 per-ingredient nutrition facts.
               </p>
@@ -95,9 +95,9 @@ export function ResultsDashboard({
             <button
               type="button"
               onClick={onJumpToUpload}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#D4DFD7] bg-[#F8FAF8] px-5 py-2.5 text-sm font-semibold text-[#0F1F16] transition-colors hover:bg-[#EEF4EF] whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-2.5 text-sm font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <Utensils className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+              <Utensils className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
               Scan a Meal
             </button>
           </div>
@@ -166,23 +166,23 @@ export function ResultsDashboard({
   ];
 
   return (
-    <section id="results" className="border-b border-[#E2E8E4] bg-[#F8FAF8]">
+    <section id="results" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Estimation disclaimer bar */}
-        <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-[#D4DFD7] bg-white px-4 py-3 text-xs text-[#475E50]">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#15803D]" aria-hidden="true" />
+        <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-[#E5CFD4] bg-white px-4 py-3 text-xs text-[#644A52]">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#BE123C]" aria-hidden="true" />
           <p>
-            <strong className="font-semibold text-[#0F1F16]">Estimate Notice:</strong>{' '}
+            <strong className="font-semibold text-[#241118]">Estimate Notice:</strong>{' '}
             {scaledAnalysis.estimationDisclaimer}
           </p>
         </div>
 
         {/* Detected Meal Summary Header + Portion Adjuster + Add to Daily Tracker */}
-        <div className="rounded-2xl border border-[#E2E8E4] bg-white p-5 sm:p-6">
+        <div className="rounded-2xl border border-[#EEDCE0] bg-white p-5 sm:p-6">
           <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-4">
               {imagePreviewUrl && (
-                <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl border border-[#E2E8E4] bg-[#F2F6F3]">
+                <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl border border-[#EEDCE0] bg-[#FDF3F5]">
                   <img
                     src={imagePreviewUrl}
                     alt={scaledAnalysis.mealTitle}
@@ -191,8 +191,8 @@ export function ResultsDashboard({
                 </div>
               )}
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 text-xs text-[#475E50]">
-                  <span className="inline-flex items-center gap-1 font-medium text-[#15803D]">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[#644A52]">
+                  <span className="inline-flex items-center gap-1 font-medium text-[#BE123C]">
                     <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                     {confidenceLabel}
                   </span>
@@ -202,10 +202,10 @@ export function ResultsDashboard({
                     {scaledAnalysis.estimatedServingSizeGrams} g ({scaledAnalysis.servingDescription})
                   </span>
                 </div>
-                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#0F1F16]">
+                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
                   {scaledAnalysis.mealTitle}
                 </h2>
-                <p className="mt-1 text-xs text-[#5B7063]">
+                <p className="mt-1 text-xs text-[#7E6069]">
                   {scaledAnalysis.items.length} visible food{' '}
                   {scaledAnalysis.items.length === 1 ? 'component' : 'components'} analyzed
                 </p>
@@ -217,7 +217,7 @@ export function ResultsDashboard({
               <div
                 role="group"
                 aria-label="Meal category"
-                className="flex items-center gap-1 rounded-lg bg-[#F2F6F3] p-1"
+                className="flex items-center gap-1 rounded-lg bg-[#FDF3F5] p-1"
               >
                 {MEAL_CATEGORIES.map((category) => (
                   <button
@@ -226,8 +226,8 @@ export function ResultsDashboard({
                     onClick={() => setSelectedCategory(category)}
                     className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
                       selectedCategory === category
-                        ? 'bg-white text-[#0F1F16] shadow-xs'
-                        : 'text-[#475E50] hover:text-[#0F1F16]'
+                        ? 'bg-white text-[#241118] shadow-xs'
+                        : 'text-[#644A52] hover:text-[#241118]'
                     }`}
                   >
                     {category}
@@ -240,19 +240,19 @@ export function ResultsDashboard({
                 onClick={handleSaveMeal}
                 className={`inline-flex min-h-[42px] items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                   justAdded
-                    ? 'bg-[#0F1F16] text-white'
-                    : 'bg-[#15803D] text-white hover:bg-[#166534]'
+                    ? 'bg-[#241118] text-white'
+                    : 'bg-[#BE123C] text-white hover:bg-[#9F1239]'
                 }`}
               >
                 {justAdded ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400" aria-hidden="true" />
-                    Added to Tracker
+                    <CheckCircle2 className="h-4 w-4 text-rose-300" aria-hidden="true" />
+                    Added to Diary
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4" aria-hidden="true" />
-                    Add to Daily Tracker
+                    Add to Daily Diary
                   </>
                 )}
               </button>
@@ -260,23 +260,23 @@ export function ResultsDashboard({
               <button
                 type="button"
                 onClick={() => onShareMeal(scaledAnalysis)}
-                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-[#D4DFD7] bg-[#F8FAF8] px-4 py-2 text-sm font-medium text-[#0F1F16] transition-colors hover:bg-[#EEF6F0] whitespace-nowrap shrink-0 cursor-pointer"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-4 py-2 text-sm font-medium text-[#241118] transition-colors hover:bg-[#FDF2F4] whitespace-nowrap shrink-0 cursor-pointer"
               >
-                <Share2 className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+                <Share2 className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                 Share
               </button>
             </div>
           </div>
 
           {/* Interactive Portion Multiplier Bar */}
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#EEF3EF] pt-4">
-            <span className="text-xs font-medium text-[#475E50]">
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-[#F6E9EC] pt-4">
+            <span className="text-xs font-medium text-[#644A52]">
               Adjust portion eaten to recalculate calories &amp; macros:
             </span>
             <div
               role="group"
               aria-label="Portion multiplier"
-              className="flex flex-wrap items-center gap-1 rounded-lg bg-[#F2F6F3] p-1"
+              className="flex flex-wrap items-center gap-1 rounded-lg bg-[#FDF3F5] p-1"
             >
               {PORTION_MULTIPLIERS.map((factor) => (
                 <button
@@ -285,8 +285,8 @@ export function ResultsDashboard({
                   onClick={() => setPortionMultiplier(factor)}
                   className={`rounded-md px-3 py-1 font-mono text-xs font-medium tabular-nums transition-colors cursor-pointer ${
                     portionMultiplier === factor
-                      ? 'bg-white text-[#15803D] shadow-xs'
-                      : 'text-[#475E50] hover:text-[#0F1F16]'
+                      ? 'bg-white text-[#BE123C] shadow-xs'
+                      : 'text-[#644A52] hover:text-[#241118]'
                   }`}
                 >
                   {factor}×
@@ -303,16 +303,16 @@ export function ResultsDashboard({
               key={card.label}
               className={`rounded-2xl border p-4 sm:p-5 ${
                 card.highlight
-                  ? 'border-[#15803D]/30 bg-[#EEF6F0]'
-                  : 'border-[#E2E8E4] bg-white'
+                  ? 'border-[#BE123C]/30 bg-[#FDF2F4]'
+                  : 'border-[#EEDCE0] bg-white'
               }`}
             >
-              <p className="text-xs font-medium text-[#475E50]">{card.label}</p>
+              <p className="text-xs font-medium text-[#644A52]">{card.label}</p>
               <div className="mt-2 flex items-baseline gap-1 font-mono tabular-nums">
-                <span className="text-2xl font-bold text-[#0F1F16]">{card.value}</span>
-                <span className="text-xs font-medium text-[#475E50]">{card.unit}</span>
+                <span className="text-2xl font-bold text-[#241118]">{card.value}</span>
+                <span className="text-xs font-medium text-[#644A52]">{card.unit}</span>
               </div>
-              <p className="mt-1 truncate text-xs text-[#5B7063]">{card.subtext}</p>
+              <p className="mt-1 truncate text-xs text-[#7E6069]">{card.subtext}</p>
             </div>
           ))}
         </div>
@@ -324,19 +324,19 @@ export function ResultsDashboard({
 
         {/* Detected Multiple Food Items Breakdown Table */}
         {scaledAnalysis.items.length > 0 && (
-          <div className="mt-6 overflow-hidden rounded-2xl border border-[#E2E8E4] bg-white">
-            <div className="border-b border-[#E2E8E4] px-6 py-4">
-              <h3 className="font-display text-base font-semibold text-[#0F1F16]">
+          <div className="mt-6 overflow-hidden rounded-2xl border border-[#EEDCE0] bg-white">
+            <div className="border-b border-[#EEDCE0] px-6 py-4">
+              <h3 className="font-display text-base font-semibold text-[#241118]">
                 Detected Food Items Breakdown
               </h3>
-              <p className="mt-0.5 text-xs text-[#5B7063]">
+              <p className="mt-0.5 text-xs text-[#7E6069]">
                 Individual ingredient portions and macro estimates detected in the image
               </p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left text-sm">
-                <thead className="border-b border-[#E2E8E4] bg-[#F8FAF8] text-xs font-medium text-[#475E50]">
+                <thead className="border-b border-[#EEDCE0] bg-[#FFF8F9] text-xs font-medium text-[#644A52]">
                   <tr>
                     <th className="px-6 py-3">Food Item</th>
                     <th className="px-4 py-3 text-right">Portion</th>
@@ -347,29 +347,29 @@ export function ResultsDashboard({
                     <th className="px-6 py-3 text-right">Fiber</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EEF3EF]">
+                <tbody className="divide-y divide-[#F6E9EC]">
                   {scaledAnalysis.items.map((item, idx) => (
-                    <tr key={`${item.name}-${idx}`} className="hover:bg-[#F8FAF8] transition-colors">
+                    <tr key={`${item.name}-${idx}`} className="hover:bg-[#FFF8F9] transition-colors">
                       <td className="px-6 py-3.5">
-                        <p className="font-medium text-[#0F1F16]">{item.name}</p>
-                        <p className="text-xs text-[#5B7063]">{item.preparationNote}</p>
+                        <p className="font-medium text-[#241118]">{item.name}</p>
+                        <p className="text-xs text-[#7E6069]">{item.preparationNote}</p>
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#475E50] tabular-nums">
+                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#644A52] tabular-nums">
                         {item.portionGrams} g
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#0F1F16] tabular-nums">
+                      <td className="px-4 py-3.5 text-right font-mono font-semibold text-[#241118] tabular-nums">
                         {item.caloriesKcal} kcal
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#0F1F16] tabular-nums">
+                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#241118] tabular-nums">
                         {item.proteinGrams} g
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#0F1F16] tabular-nums">
+                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#241118] tabular-nums">
                         {item.carbsGrams} g
                       </td>
-                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#0F1F16] tabular-nums">
+                      <td className="px-4 py-3.5 text-right font-mono text-xs text-[#241118] tabular-nums">
                         {item.fatGrams} g
                       </td>
-                      <td className="px-6 py-3.5 text-right font-mono text-xs text-[#0F1F16] tabular-nums">
+                      <td className="px-6 py-3.5 text-right font-mono text-xs text-[#241118] tabular-nums">
                         {item.fiberGrams} g
                       </td>
                     </tr>

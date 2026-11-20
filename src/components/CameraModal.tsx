@@ -112,16 +112,16 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0F1F16]/70 p-4 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#241118]/70 p-4 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-labelledby="camera-modal-title"
     >
-      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-[#E2E8E4] bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-[#E2E8E4] px-5 py-4">
+      <div className="w-full max-w-xl overflow-hidden rounded-2xl border border-[#EEDCE0] bg-white shadow-xl">
+        <div className="flex items-center justify-between border-b border-[#EEDCE0] px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <Camera className="h-5 w-5 text-[#15803D]" aria-hidden="true" />
-            <h2 id="camera-modal-title" className="font-display text-base font-semibold text-[#0F1F16]">
+            <Camera className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
+            <h2 id="camera-modal-title" className="font-display text-base font-semibold text-[#241118]">
               Capture Meal Photo
             </h2>
           </div>
@@ -129,7 +129,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Close camera"
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#475E50] transition-colors hover:bg-[#F2F6F3] hover:text-[#0F1F16] cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-[#644A52] transition-colors hover:bg-[#FDF3F5] hover:text-[#241118] cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -143,13 +143,13 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="mt-5 min-h-[40px] rounded-lg bg-[#0F1F16] px-4 py-2 text-sm font-medium text-white hover:bg-[#1E3A2A] cursor-pointer"
+                className="mt-5 min-h-[40px] rounded-lg bg-[#241118] px-4 py-2 text-sm font-medium text-white hover:bg-[#3A1E28] cursor-pointer"
               >
                 Return to Upload
               </button>
             </div>
           ) : (
-            <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-[#0F1F16]">
+            <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-[#241118]">
               <video
                 ref={videoRef}
                 playsInline
@@ -157,7 +157,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                 className="h-full w-full object-cover"
               />
               {isStarting && (
-                <div className="absolute inset-0 flex items-center justify-center bg-[#0F1F16]/60 text-sm font-medium text-white">
+                <div className="absolute inset-0 flex items-center justify-center bg-[#241118]/60 text-sm font-medium text-white">
                   Starting camera...
                 </div>
               )}
@@ -166,13 +166,13 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
         </div>
 
         {!error && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E2E8E4] bg-[#F8FAF8] px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EEDCE0] bg-[#FFF8F9] px-5 py-4">
             <button
               type="button"
               onClick={() => setFacingMode((prev) => (prev === 'environment' ? 'user' : 'environment'))}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#D4DFD7] bg-white px-4 py-2 text-sm font-medium text-[#0F1F16] transition-colors hover:bg-[#F2F6F3] cursor-pointer"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-white px-4 py-2 text-sm font-medium text-[#241118] transition-colors hover:bg-[#FDF3F5] cursor-pointer"
             >
-              <RefreshCw className="h-4 w-4 text-[#475E50]" aria-hidden="true" />
+              <RefreshCw className="h-4 w-4 text-[#644A52]" aria-hidden="true" />
               Switch Camera
             </button>
 
@@ -180,7 +180,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium text-[#475E50] hover:bg-[#EBF1EC] cursor-pointer"
+                className="min-h-[44px] rounded-lg px-4 py-2 text-sm font-medium text-[#644A52] hover:bg-[#F9EBEE] cursor-pointer"
               >
                 Cancel
               </button>
@@ -188,7 +188,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
                 type="button"
                 disabled={isStarting}
                 onClick={handleTakeSnapshot}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[#15803D] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#166534] disabled:opacity-50 cursor-pointer"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 cursor-pointer"
               >
                 <Camera className="h-4 w-4" aria-hidden="true" />
                 Capture Photo

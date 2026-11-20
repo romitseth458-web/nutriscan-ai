@@ -136,14 +136,14 @@ export function DailyTrackerSection({
       current: dayTotals.caloriesKcal,
       goal: dailyGoals.caloriesKcal,
       unit: 'kcal',
-      barColor: 'bg-[#15803D]',
+      barColor: 'bg-[#BE123C]',
     },
     {
       label: 'Protein',
       current: dayTotals.proteinGrams,
       goal: dailyGoals.proteinGrams,
       unit: 'g',
-      barColor: 'bg-[#16A34A]',
+      barColor: 'bg-[#E11D48]',
     },
     {
       label: 'Carbohydrates',
@@ -162,23 +162,23 @@ export function DailyTrackerSection({
   ];
 
   return (
-    <section id="daily-tracker" className="bg-[#F8FAF8]">
+    <section id="daily-tracker" className="bg-[#FFF8F9]">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         {/* Header & Date / Goal / Export Controls */}
         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
           <div>
-            <p className="text-xs font-medium text-[#15803D]">Local Browser History</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#0F1F16]">
-              Daily Food Tracker
+            <p className="text-xs font-medium text-[#BE123C]">Daily Nutrition Log</p>
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+              Daily Food Diary
             </h2>
-            <p className="mt-1 text-sm text-[#475E50]">
+            <p className="mt-1 text-sm text-[#644A52]">
               Track daily calories, protein, carbohydrates, and fats across saved meals.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <label className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#D4DFD7] bg-white px-3 py-1.5 text-xs font-medium text-[#0F1F16]">
-              <Calendar className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+            <label className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-white px-3 py-1.5 text-xs font-medium text-[#241118]">
+              <Calendar className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
               <span className="sr-only">Select date</span>
               <input
                 type="date"
@@ -189,16 +189,16 @@ export function DailyTrackerSection({
                     setConfirmClearDay(false);
                   }
                 }}
-                className="bg-transparent font-mono text-xs text-[#0F1F16] focus:outline-none"
+                className="bg-transparent font-mono text-xs text-[#241118] focus:outline-none"
               />
             </label>
 
             <button
               type="button"
               onClick={onOpenCalculator}
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#D4DFD7] bg-white px-3.5 py-2 text-xs font-semibold text-[#0F1F16] transition-colors hover:bg-[#F2F6F3] whitespace-nowrap cursor-pointer"
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF3F5] whitespace-nowrap cursor-pointer"
             >
-              <Calculator className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+              <Calculator className="h-3.5 w-3.5 text-[#BE123C]" aria-hidden="true" />
               Calculate Goal
             </button>
 
@@ -208,9 +208,9 @@ export function DailyTrackerSection({
                 setGoalDraft(dailyGoals);
                 setIsEditingGoals((prev) => !prev);
               }}
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#D4DFD7] bg-white px-3.5 py-2 text-xs font-semibold text-[#0F1F16] transition-colors hover:bg-[#F2F6F3] whitespace-nowrap cursor-pointer"
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF3F5] whitespace-nowrap cursor-pointer"
             >
-              <SlidersHorizontal className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#BE123C]" aria-hidden="true" />
               {isEditingGoals ? 'Close Targets' : 'Edit Targets'}
             </button>
 
@@ -218,9 +218,9 @@ export function DailyTrackerSection({
               <button
                 type="button"
                 onClick={handleExportCsv}
-                className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#D4DFD7] bg-white px-3.5 py-2 text-xs font-semibold text-[#0F1F16] transition-colors hover:bg-[#F2F6F3] whitespace-nowrap cursor-pointer"
+                className="inline-flex min-h-[40px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF3F5] whitespace-nowrap cursor-pointer"
               >
-                <Download className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+                <Download className="h-3.5 w-3.5 text-[#BE123C]" aria-hidden="true" />
                 Download CSV
               </button>
             )}
@@ -229,7 +229,7 @@ export function DailyTrackerSection({
 
         {/* Recent Logged Dates quick switch */}
         {recentDates.length > 1 && (
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#5B7063]">
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#7E6069]">
             <span>Recent logged days:</span>
             {recentDates.map((dateKey) => (
               <button
@@ -238,8 +238,8 @@ export function DailyTrackerSection({
                 onClick={() => onChangeDateKey(dateKey)}
                 className={`rounded-md px-2.5 py-1 font-mono text-xs tabular-nums transition-colors cursor-pointer ${
                   selectedDateKey === dateKey
-                    ? 'bg-[#15803D] font-semibold text-white'
-                    : 'bg-white text-[#475E50] border border-[#E2E8E4] hover:text-[#0F1F16]'
+                    ? 'bg-[#BE123C] font-semibold text-white'
+                    : 'bg-white text-[#644A52] border border-[#EEDCE0] hover:text-[#241118]'
                 }`}
               >
                 {dateKey}
@@ -252,9 +252,9 @@ export function DailyTrackerSection({
         {isEditingGoals && (
           <form
             onSubmit={handleSaveGoals}
-            className="mt-5 rounded-2xl border border-[#D4DFD7] bg-white p-5"
+            className="mt-5 rounded-2xl border border-[#E5CFD4] bg-white p-5"
           >
-            <p className="font-display text-sm font-semibold text-[#0F1F16]">
+            <p className="font-display text-sm font-semibold text-[#241118]">
               Customize Daily Nutrition Targets
             </p>
             <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -268,7 +268,7 @@ export function DailyTrackerSection({
                 ] as const
               ).map((field) => (
                 <label key={field.key} className="block">
-                  <span className="text-xs font-medium text-[#475E50]">{field.label}</span>
+                  <span className="text-xs font-medium text-[#644A52]">{field.label}</span>
                   <input
                     type="number"
                     min={1}
@@ -279,7 +279,7 @@ export function DailyTrackerSection({
                         [field.key]: Number(e.target.value),
                       }))
                     }
-                    className="mt-1.5 w-full rounded-lg border border-[#D4DFD7] px-3 py-2 font-mono text-sm text-[#0F1F16] tabular-nums focus:border-[#15803D] focus:outline-none"
+                    className="mt-1.5 w-full rounded-lg border border-[#E5CFD4] px-3 py-2 font-mono text-sm text-[#241118] tabular-nums focus:border-[#BE123C] focus:outline-none"
                   />
                 </label>
               ))}
@@ -288,13 +288,13 @@ export function DailyTrackerSection({
               <button
                 type="button"
                 onClick={() => setIsEditingGoals(false)}
-                className="min-h-[38px] rounded-lg px-4 py-1.5 text-xs font-medium text-[#475E50] hover:bg-[#F2F6F3] cursor-pointer"
+                className="min-h-[38px] rounded-lg px-4 py-1.5 text-xs font-medium text-[#644A52] hover:bg-[#FDF3F5] cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="min-h-[38px] rounded-lg bg-[#15803D] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#166534] cursor-pointer"
+                className="min-h-[38px] rounded-lg bg-[#BE123C] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
               >
                 Save Targets
               </button>
@@ -310,25 +310,25 @@ export function DailyTrackerSection({
             return (
               <div
                 key={item.label}
-                className="rounded-2xl border border-[#E2E8E4] bg-white p-5"
+                className="rounded-2xl border border-[#EEDCE0] bg-white p-5"
               >
                 <div className="flex items-baseline justify-between">
-                  <p className="text-xs font-medium text-[#475E50]">{item.label}</p>
-                  <span className="font-mono text-xs text-[#5B7063] tabular-nums">{pct}%</span>
+                  <p className="text-xs font-medium text-[#644A52]">{item.label}</p>
+                  <span className="font-mono text-xs text-[#7E6069] tabular-nums">{pct}%</span>
                 </div>
                 <div className="mt-2 flex items-baseline gap-1.5 font-mono tabular-nums">
-                  <span className="text-2xl font-bold text-[#0F1F16]">{item.current}</span>
-                  <span className="text-xs text-[#5B7063]">
+                  <span className="text-2xl font-bold text-[#241118]">{item.current}</span>
+                  <span className="text-xs text-[#7E6069]">
                     / {item.goal} {item.unit}
                   </span>
                 </div>
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#EEF3EF]">
+                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#F6E9EC]">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${item.barColor}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="mt-2 text-xs text-[#5B7063] tabular-nums">
+                <p className="mt-2 text-xs text-[#7E6069] tabular-nums">
                   {remaining > 0 ? `${remaining} ${item.unit} remaining` : 'Daily target reached'}
                 </p>
               </div>
@@ -337,16 +337,16 @@ export function DailyTrackerSection({
         </div>
 
         {/* Logged Meals List or Empty State */}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[#E2E8E4] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8E4] px-6 py-4">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-[#EEDCE0] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEDCE0] px-6 py-4">
             <div className="flex items-center gap-2 text-sm">
-              <h3 className="font-display font-semibold text-[#0F1F16]">
+              <h3 className="font-display font-semibold text-[#241118]">
                 Logged Meals ({dayEntries.length})
               </h3>
-              <span className="text-[#9BB0A3]" aria-hidden="true">
+              <span className="text-[#D9A7B2]" aria-hidden="true">
                 ·
               </span>
-              <span className="font-mono text-xs text-[#475E50] tabular-nums">
+              <span className="font-mono text-xs text-[#644A52] tabular-nums">
                 {dayTotals.fiberGrams} g fiber logged
               </span>
             </div>
@@ -357,7 +357,7 @@ export function DailyTrackerSection({
                   <button
                     type="button"
                     onClick={() => setConfirmClearDay(true)}
-                    className="text-xs font-medium text-[#5B7063] hover:text-red-700 cursor-pointer"
+                    className="text-xs font-medium text-[#7E6069] hover:text-red-700 cursor-pointer"
                   >
                     Clear Day
                   </button>
@@ -377,7 +377,7 @@ export function DailyTrackerSection({
                     <button
                       type="button"
                       onClick={() => setConfirmClearDay(false)}
-                      className="rounded-md px-2 py-1 text-xs font-medium text-[#475E50] hover:bg-[#F2F6F3] cursor-pointer"
+                      className="rounded-md px-2 py-1 text-xs font-medium text-[#644A52] hover:bg-[#FDF3F5] cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -389,26 +389,26 @@ export function DailyTrackerSection({
 
           {dayEntries.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EEF6F0] text-[#15803D]">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#FDF2F4] text-[#BE123C]">
                 <Utensils className="h-5 w-5" aria-hidden="true" />
               </div>
-              <p className="mt-3 font-display text-base font-semibold text-[#0F1F16]">
+              <p className="mt-3 font-display text-base font-semibold text-[#241118]">
                 No meals logged for {selectedDateKey}
               </p>
-              <p className="mt-1 max-w-md text-xs leading-relaxed text-[#5B7063]">
-                Analyze a meal photo and click &ldquo;Add to Daily Tracker&rdquo; to build your
-                daily calorie and macronutrient log.
+              <p className="mt-1 max-w-md text-xs leading-relaxed text-[#7E6069]">
+                Analyze a meal photo and click &ldquo;Add to Daily Diary&rdquo; to build your daily
+                calorie and macronutrient log.
               </p>
               <button
                 type="button"
                 onClick={onJumpToUpload}
-                className="mt-5 min-h-[40px] rounded-lg bg-[#15803D] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#166534] cursor-pointer"
+                className="mt-5 min-h-[40px] rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] cursor-pointer"
               >
                 Scan Your First Meal
               </button>
             </div>
           ) : (
-            <ul className="divide-y divide-[#EEF3EF]">
+            <ul className="divide-y divide-[#F6E9EC]">
               {dayEntries.map((entry) => {
                 const timeFormatted = new Date(entry.loggedAtIso).toLocaleTimeString([], {
                   hour: '2-digit',
@@ -417,25 +417,25 @@ export function DailyTrackerSection({
                 return (
                   <li
                     key={entry.id}
-                    className="flex flex-col justify-between gap-4 px-6 py-4 transition-colors hover:bg-[#F8FAF8] sm:flex-row sm:items-center"
+                    className="flex flex-col justify-between gap-4 px-6 py-4 transition-colors hover:bg-[#FFF8F9] sm:flex-row sm:items-center"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       {entry.imageThumbnailDataUrl ? (
                         <img
                           src={entry.imageThumbnailDataUrl}
                           alt={entry.analysis.mealTitle}
-                          className="h-14 w-16 shrink-0 rounded-lg border border-[#E2E8E4] object-cover"
+                          className="h-14 w-16 shrink-0 rounded-lg border border-[#EEDCE0] object-cover"
                         />
                       ) : (
-                        <div className="flex h-14 w-16 shrink-0 items-center justify-center rounded-lg border border-[#E2E8E4] bg-[#EEF6F0] text-[#15803D]">
+                        <div className="flex h-14 w-16 shrink-0 items-center justify-center rounded-lg border border-[#EEDCE0] bg-[#FDF2F4] text-[#BE123C]">
                           <Utensils className="h-5 w-5" aria-hidden="true" />
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-display text-sm font-semibold text-[#0F1F16]">
+                        <p className="truncate font-display text-sm font-semibold text-[#241118]">
                           {entry.analysis.mealTitle}
                         </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#5B7063]">
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[#7E6069]">
                           <span>{entry.mealCategory}</span>
                           <span aria-hidden="true">·</span>
                           <span className="tabular-nums">{timeFormatted}</span>
@@ -450,18 +450,18 @@ export function DailyTrackerSection({
                     <div className="flex flex-wrap items-center justify-between gap-4 sm:justify-end">
                       <div className="flex items-center gap-4 font-mono text-xs tabular-nums">
                         <div className="text-right">
-                          <span className="font-semibold text-[#0F1F16]">
+                          <span className="font-semibold text-[#241118]">
                             {entry.analysis.totals.caloriesKcal}
                           </span>{' '}
-                          <span className="text-[#5B7063]">kcal</span>
+                          <span className="text-[#7E6069]">kcal</span>
                         </div>
-                        <div className="text-right text-[#475E50]">
+                        <div className="text-right text-[#644A52]">
                           P {entry.analysis.totals.proteinGrams}g
                         </div>
-                        <div className="text-right text-[#475E50]">
+                        <div className="text-right text-[#644A52]">
                           C {entry.analysis.totals.carbsGrams}g
                         </div>
-                        <div className="text-right text-[#475E50]">
+                        <div className="text-right text-[#644A52]">
                           F {entry.analysis.totals.fatGrams}g
                         </div>
                       </div>
@@ -472,9 +472,9 @@ export function DailyTrackerSection({
                           onClick={() => onInspectEntry(entry)}
                           title="View full analysis in dashboard"
                           aria-label={`Inspect ${entry.analysis.mealTitle}`}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#E2E8E4] bg-white px-3 text-xs font-medium text-[#0F1F16] transition-colors hover:bg-[#EEF6F0] cursor-pointer"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#EEDCE0] bg-white px-3 text-xs font-medium text-[#241118] transition-colors hover:bg-[#FDF2F4] cursor-pointer"
                         >
-                          <Eye className="h-3.5 w-3.5 text-[#15803D]" aria-hidden="true" />
+                          <Eye className="h-3.5 w-3.5 text-[#BE123C]" aria-hidden="true" />
                           View
                         </button>
                         <button
@@ -482,7 +482,7 @@ export function DailyTrackerSection({
                           onClick={() => onDeleteEntry(entry.id)}
                           title="Delete meal entry"
                           aria-label={`Delete ${entry.analysis.mealTitle}`}
-                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E2E8E4] bg-white text-[#5B7063] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700 cursor-pointer"
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#EEDCE0] bg-white text-[#7E6069] transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-700 cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </button>
