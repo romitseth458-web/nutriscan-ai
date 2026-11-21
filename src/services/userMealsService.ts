@@ -16,9 +16,13 @@ import {
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import type {
   DailyNutritionGoals,
+  DietaryPreference,
+  DietActivityLevel,
+  DietFitnessGoal,
   FoodAnalysisResult,
   MealCategory,
   TrackedMealEntry,
+  UserDietProfile,
 } from '../types/nutrition';
 import { DEFAULT_DAILY_GOALS } from '../utils/storage';
 
@@ -28,6 +32,7 @@ export interface UserProfileRecord {
   email: string;
   photoURL?: string;
   dailyGoals: DailyNutritionGoals;
+  dietProfile?: UserDietProfile;
 }
 
 const VALID_CATEGORIES = new Set<MealCategory>(['Breakfast', 'Lunch', 'Dinner', 'Snack']);
@@ -54,6 +59,62 @@ export function sanitizeDailyGoals(goals: Partial<DailyNutritionGoals>): DailyNu
       clampNumber(goals.fiberGrams, 1, 500, DEFAULT_DAILY_GOALS.fiberGrams)
     ),
   };
+}
+
+const VALID_ACTIVITY_LEVELS = new Set<DietActivityLevel>([
+  'sedentary',
+  'light',
+  'moderate',
+  'active',
+]);
+const VALID_FITNESS_GOALS = new Set<DietFitnessGoal>([
+  'weight_loss',
+  'weight_gain',
+  'muscle_building',
+  'maintenance',
+]);
+const VALID_DIETARY_PREFERENCES = new Set<DietaryPreference>([
+  'vegetarian',
+  'non-vegetarian',
+  'eggetarian',
+  'vegan',
+]);
+
+export function sanitizeDietProfile(
+  raw: Partial<UserDietProfile> | null | undefined
+): UserDietProfile {
+  if (!raw || typeof raw !== 'object') return {};
+  const clean: UserDietProfile = {};
+
+  if (typeof raw.age === 'number' && Number.isFinite(raw.age)) {
+    clean.age = Math.round(Math.min(100, Math.max(13, raw.age)));
+  }
+  if (typeof raw.heightCm === 'number' && Number.isFinite(raw.heightCm)) {
+    clean.heightCm = Math.round(Math.min(250, Math.max(100, raw.heightCm)) * 10) / 10;
+  }
+  if (typeof raw.weightKg === 'number' && Number.isFinite(raw.weightKg)) {
+    clean.weightKg = Math.round(Math.min(300, Math.max(25, raw.weightKg)) * 10) / 10;
+  }
+  if (
+    typeof raw.activityLevel === 'string' &&
+    VALID_ACTIVITY_LEVELS.has(raw.activityLevel as DietActivityLevel)
+  ) {
+    clean.activityLevel = raw.activityLevel as DietActivityLevel;
+  }
+  if (
+    typeof raw.fitnessGoal === 'string' &&
+    VALID_FITNESS_GOALS.has(raw.fitnessGoal as DietFitnessGoal)
+  ) {
+    clean.fitnessGoal = raw.fitnessGoal as DietFitnessGoal;
+  }
+  if (
+    typeof raw.dietaryPreference === 'string' &&
+    VALID_DIETARY_PREFERENCES.has(raw.dietaryPreference as DietaryPreference)
+  ) {
+    clean.dietaryPreference = raw.dietaryPreference as DietaryPreference;
+  }
+
+  return clean;
 }
 
 function sanitizeAnalysisForFirestore(analysis: FoodAnalysisResult): FoodAnalysisResult {
@@ -185,12 +246,16 @@ export function subscribeToUserProfile(
         return;
       }
       const data = snap.data();
+      const dietProfile = sanitizeDietProfile(
+        data.dietProfile as Partial<UserDietProfile> | undefined
+      );
       onProfile({
         uid: String(data.uid || userId),
         displayName: String(data.displayName || 'RosoFood Member'),
         email: String(data.email || ''),
         photoURL: typeof data.photoURL === 'string' ? data.photoURL : undefined,
         dailyGoals: sanitizeDailyGoals((data.dailyGoals as Partial<DailyNutritionGoals>) || {}),
+        dietProfile,
       });
     },
     (error) => {
@@ -246,6 +311,40 @@ export async function saveUserDailyGoals(
   try {
     await updateDoc(ref, {
       dailyGoals: sanitizeDailyGoals(goals),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function saveUserDietProfile(
+  userId: string,
+  dietProfile: UserDietProfile
+): Promise<void> {
+  const path = `users/${userId}`;
+  const ref = doc(db, 'users', userId);
+  try {
+    await updateDoc(ref, {
+      dietProfile: sanitizeDietProfile(dietProfile),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function saveUserGoalsAndDietProfile(
+  userId: string,
+  goals: DailyNutritionGoals,
+  dietProfile: UserDietProfile
+): Promise<void> {
+  const path = `users/${userId}`;
+  const ref = doc(db, 'users', userId);
+  try {
+    await updateDoc(ref, {
+      dailyGoals: sanitizeDailyGoals(goals),
+      dietProfile: sanitizeDietProfile(dietProfile),
       updatedAt: serverTimestamp(),
     });
   } catch (error) {

@@ -23,11 +23,13 @@ import { DailyTrackerSection } from './components/DailyTrackerSection';
 import { FaqSection } from './components/FaqSection';
 import { GoalCalculatorModal } from './components/GoalCalculatorModal';
 import { ProfileModal } from './components/ProfileModal';
+import { VoiceDietAssistantModal } from './components/VoiceDietAssistantModal';
 import {
   clearDayMealsForUser,
   deleteMealForUser,
   saveMealForUser,
   saveUserDailyGoals,
+  saveUserDietProfile,
   subscribeToUserMeals,
 } from './services/userMealsService';
 import type {
@@ -35,6 +37,7 @@ import type {
   FoodAnalysisResult,
   MealCategory,
   TrackedMealEntry,
+  UserDietProfile,
 } from './types/nutrition';
 import type { PreparedFoodImage } from './utils/imageUtils';
 import { DEFAULT_DAILY_GOALS, getLocalDateKey } from './utils/storage';
@@ -61,6 +64,7 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isGoalCalcOpen, setIsGoalCalcOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
   const [isCheckingVerify, setIsCheckingVerify] = useState(false);
 
   const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
@@ -85,6 +89,7 @@ export default function App() {
       setAnalysisResult(null);
       setErrorMessage(null);
       setIsProfileOpen(false);
+      setIsVoiceAssistantOpen(false);
       return;
     }
 
@@ -272,6 +277,16 @@ export default function App() {
     }
   }
 
+  async function handleSaveDietProfile(nextProfile: UserDietProfile) {
+    if (!user) return;
+    if (!user.emailVerified) {
+      showToast('Verify your email address first to save your diet profile in Firestore.');
+      return;
+    }
+    await saveUserDietProfile(user.uid, nextProfile);
+    showToast('Saved your diet & body profile');
+  }
+
   function handleInspectEntry(entry: TrackedMealEntry) {
     setAnalysisResult(entry.analysis);
     setActivePreviewUrl(entry.imageThumbnailDataUrl || null);
@@ -375,6 +390,7 @@ export default function App() {
       <div id="top" className="min-h-screen flex flex-col bg-white text-[#241118]">
         <Navbar
           onUploadClick={handleNavbarUploadClick}
+          onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
           onShowToast={showToast}
           userDisplayName={displayName}
           userEmail={email}
@@ -459,6 +475,7 @@ export default function App() {
             onClearError={() => setErrorMessage(null)}
             analysisResult={analysisResult}
             fileInputRef={fileInputRef}
+            onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
             onShowToast={showToast}
           />
 
@@ -498,6 +515,7 @@ export default function App() {
             onClearDay={(dateKey) => void handleClearDay(dateKey)}
             onInspectEntry={handleInspectEntry}
             onJumpToUpload={() => scrollToSection('analyzer')}
+            onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
           />
 
           <FaqSection />
@@ -593,6 +611,21 @@ export default function App() {
           onClose={() => setIsProfileOpen(false)}
           dailyGoals={dailyGoals}
           totalLoggedMeals={trackedMeals.length}
+          onSaveDietProfile={handleSaveDietProfile}
+          onShowToast={showToast}
+        />
+
+        <VoiceDietAssistantModal
+          isOpen={isVoiceAssistantOpen}
+          onClose={() => setIsVoiceAssistantOpen(false)}
+          user={user}
+          displayName={displayName}
+          dailyGoals={dailyGoals}
+          dietProfile={userProfile?.dietProfile}
+          trackedMeals={trackedMeals}
+          selectedDateKey={selectedDateKey}
+          onSaveDietProfile={handleSaveDietProfile}
+          onUpdateGoals={handleUpdateGoals}
           onShowToast={showToast}
         />
 

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Heart, LogOut, Menu, User as UserIcon, X } from 'lucide-react';
+import { Heart, LogOut, Menu, PhoneCall, User as UserIcon, X } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   onUploadClick: () => void;
+  onOpenVoiceAssistant: () => void;
   onShowToast?: (message: string) => void;
   userDisplayName: string;
   userEmail: string;
@@ -22,6 +23,7 @@ const NAV_LINKS = [
 
 export function Navbar({
   onUploadClick,
+  onOpenVoiceAssistant,
   onShowToast,
   userDisplayName,
   userEmail,
@@ -65,6 +67,15 @@ export function Navbar({
 
         {/* Zone 3: Primary action + Profile + mobile menu */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onOpenVoiceAssistant}
+            className="hidden sm:inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-3 py-2 text-xs font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FDF2F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+            AI Diet Call
+          </button>
+
           <button
             type="button"
             onClick={onUploadClick}
@@ -124,6 +135,17 @@ export function Navbar({
                 {link.label}
               </a>
             ))}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenVoiceAssistant();
+              }}
+              className="flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold text-[#BE123C] hover:bg-[#FDF3F5] cursor-pointer"
+            >
+              <PhoneCall className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
+              Talk to AI Diet Assistant
+            </button>
             <button
               type="button"
               onClick={() => {

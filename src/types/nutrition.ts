@@ -70,3 +70,26 @@ export interface DailyNutritionGoals {
   fatGrams: number;
   fiberGrams: number;
 }
+
+export type DietActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active';
+
+export type DietFitnessGoal =
+  | 'weight_loss'
+  | 'weight_gain'
+  | 'muscle_building'
+  | 'maintenance';
+
+export type DietaryPreference =
+  | 'vegetarian'
+  | 'non-vegetarian'
+  | 'eggetarian'
+  | 'vegan';
+
+export interface UserDietProfile {
+  age?: number;
+  heightCm?: number;
+  weightKg?: number;
+  activityLevel?: DietActivityLevel;
+  fitnessGoal?: DietFitnessGoal;
+  dietaryPreference?: DietaryPreference;
+}

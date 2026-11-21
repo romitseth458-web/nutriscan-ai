@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import http from 'http';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,6 +9,7 @@ import {
   UpstreamApiError,
   ValidationError,
 } from './server/analyzeFood.ts';
+import { setupLiveDietAssistantWebSocket } from './server/liveDietAssistant.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -80,10 +82,40 @@ app.post('/api/analyze-text', async (req, res) => {
 });
 
 async function startServer() {
+  const httpServer = http.createServer(app);
+  setupLiveDietAssistantWebSocket(httpServer);
+
   if (process.env.NODE_ENV !== 'production') {
+    app.get(['/dev-sw.js', '/sw.js'], (_req, res) => {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.send(`
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.map((name) => caches.delete(name)));
+    await self.registration.unregister();
+    const clients = await self.clients.matchAll({ type: 'window' });
+    clients.forEach((client) => client.navigate(client.url));
+  })());
+});
+`);
+    });
+
+    app.use((req, res, next) => {
+      if (req.method === 'GET' && !req.path.startsWith('/api/') && req.headers.accept?.includes('text/html')) {
+        res.setHeader('Cache-Control', 'no-store');
+      }
+      next();
+    });
+
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: { server: httpServer },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -95,7 +127,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`RosoFood AI server listening on http://localhost:${PORT}`);
   });
 }

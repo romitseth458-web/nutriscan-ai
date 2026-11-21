@@ -9,6 +9,7 @@ import {
   Loader2,
   Image as ImageIcon,
   ArrowRight,
+  PhoneCall,
 } from 'lucide-react';
 import type { FoodAnalysisResult } from '../types/nutrition';
 import {
@@ -64,6 +65,7 @@ interface FoodUploadStudioProps {
   onClearError: () => void;
   analysisResult: FoodAnalysisResult | null;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onOpenVoiceAssistant: () => void;
   onShowToast?: (message: string) => void;
 }
 
@@ -76,6 +78,7 @@ export function FoodUploadStudio({
   onClearError,
   analysisResult,
   fileInputRef,
+  onOpenVoiceAssistant,
   onShowToast,
 }: FoodUploadStudioProps) {
   const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -225,6 +228,15 @@ export function FoodUploadStudio({
                 >
                   <Camera className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                   Take Photo
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onOpenVoiceAssistant}
+                  className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#BE123C]/30 bg-[#FDF2F4] px-5 py-3 text-sm font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FCE7EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 whitespace-nowrap shrink-0 cursor-pointer"
+                >
+                  <PhoneCall className="h-4 w-4" aria-hidden="true" />
+                  Talk to AI Diet Assistant
                 </button>
 
                 <PWAInstallButton variant="hero" onInstalledToast={onShowToast} />

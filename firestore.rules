@@ -41,9 +41,20 @@ service cloud.firestore {
         && (goals.fiberGrams is int || goals.fiberGrams is float) && goals.fiberGrams >= 1 && goals.fiberGrams <= 500;
     }
 
+    function isValidDietProfile(profile) {
+      return profile is map
+        && profile.keys().hasOnly(['age', 'heightCm', 'weightKg', 'activityLevel', 'fitnessGoal', 'dietaryPreference'])
+        && (!('age' in profile) || ((profile.age is int || profile.age is float) && profile.age >= 13 && profile.age <= 100))
+        && (!('heightCm' in profile) || ((profile.heightCm is int || profile.heightCm is float) && profile.heightCm >= 100 && profile.heightCm <= 250))
+        && (!('weightKg' in profile) || ((profile.weightKg is int || profile.weightKg is float) && profile.weightKg >= 25 && profile.weightKg <= 300))
+        && (!('activityLevel' in profile) || (profile.activityLevel is string && profile.activityLevel.size() <= 20 && profile.activityLevel in ['sedentary', 'light', 'moderate', 'active']))
+        && (!('fitnessGoal' in profile) || (profile.fitnessGoal is string && profile.fitnessGoal.size() <= 24 && profile.fitnessGoal in ['weight_loss', 'weight_gain', 'muscle_building', 'maintenance']))
+        && (!('dietaryPreference' in profile) || (profile.dietaryPreference is string && profile.dietaryPreference.size() <= 24 && profile.dietaryPreference in ['vegetarian', 'non-vegetarian', 'eggetarian', 'vegan']));
+    }
+
     function isValidUserProfile(data, userId) {
       return data.keys().hasAll(['uid', 'displayName', 'email', 'dailyGoals', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'dailyGoals', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'email', 'photoURL', 'dailyGoals', 'dietProfile', 'createdAt', 'updatedAt'])
         && isValidId(data.uid)
         && data.uid == userId
         && data.uid == request.auth.uid
@@ -51,6 +62,7 @@ service cloud.firestore {
         && data.email is string && data.email.size() >= 3 && data.email.size() <= 254
         && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 1000))
         && isValidDailyGoals(data.dailyGoals)
+        && (!('dietProfile' in data) || isValidDietProfile(data.dietProfile))
         && data.createdAt is timestamp
         && data.updatedAt is timestamp;
     }
@@ -163,6 +175,8 @@ service cloud.firestore {
         && (
           incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'photoURL', 'updatedAt'])
           || incoming().diff(existing()).affectedKeys().hasOnly(['dailyGoals', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['dietProfile', 'updatedAt'])
+          || incoming().diff(existing()).affectedKeys().hasOnly(['dailyGoals', 'dietProfile', 'updatedAt'])
         );
       allow delete: if isValidId(userId) && isOwner(userId) && isVerified();
 

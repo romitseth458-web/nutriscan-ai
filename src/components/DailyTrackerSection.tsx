@@ -4,6 +4,7 @@ import {
   Calendar,
   Download,
   Eye,
+  PhoneCall,
   SlidersHorizontal,
   Trash2,
   Utensils,
@@ -24,6 +25,7 @@ interface DailyTrackerSectionProps {
   onClearDay: (dateKey: string) => void;
   onInspectEntry: (entry: TrackedMealEntry) => void;
   onJumpToUpload: () => void;
+  onOpenVoiceAssistant: () => void;
 }
 
 export function DailyTrackerSection({
@@ -37,6 +39,7 @@ export function DailyTrackerSection({
   onClearDay,
   onInspectEntry,
   onJumpToUpload,
+  onOpenVoiceAssistant,
 }: DailyTrackerSectionProps) {
   const [isEditingGoals, setIsEditingGoals] = useState(false);
   const [goalDraft, setGoalDraft] = useState<DailyNutritionGoals>(dailyGoals);
@@ -192,6 +195,15 @@ export function DailyTrackerSection({
                 className="bg-transparent font-mono text-xs text-[#241118] focus:outline-none"
               />
             </label>
+
+            <button
+              type="button"
+              onClick={onOpenVoiceAssistant}
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[#BE123C] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap cursor-pointer"
+            >
+              <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
+              Talk to AI Diet Assistant
+            </button>
 
             <button
               type="button"
