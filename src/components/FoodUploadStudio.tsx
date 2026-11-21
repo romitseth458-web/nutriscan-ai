@@ -231,7 +231,8 @@ export function FoodUploadStudio({
               </div>
 
               <p className="mt-3 text-xs text-[#7E6069]">
-                Accepts JPG, JPEG, PNG, and WebP up to 20 MB · Automatically optimized for fast upload
+                Accepts JPG, JPEG, PNG, and WebP up to 20 MB · Automatically compressed to 1024px JPEG
+                for fast scanning
               </p>
             </div>
 
@@ -345,10 +346,10 @@ export function FoodUploadStudio({
                         <div className="relative z-10 flex flex-col items-center rounded-xl border border-white/15 bg-[#241118]/85 px-6 py-4 text-center text-white shadow-lg">
                           <Loader2 className="h-6 w-6 animate-spin text-rose-400" aria-hidden="true" />
                           <p className="mt-2.5 font-display text-sm font-semibold">
-                            Analyzing meal with Gemini Vision...
+                            Analyzing your food...
                           </p>
                           <p className="mt-1 text-xs text-white/75">
-                            Identifying food items, portion weights, and macros
+                            Estimating serving size, calories, protein, carbs, fat, and fiber
                           </p>
                         </div>
                       </div>
@@ -400,7 +401,7 @@ export function FoodUploadStudio({
                           className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap cursor-pointer"
                         >
                           <Sparkles className="h-4 w-4" aria-hidden="true" />
-                          {isAnalyzing ? 'Analyzing...' : 'Analyze Food'}
+                          {isAnalyzing ? 'Analyzing your food...' : 'Analyze Food'}
                         </button>
                       </div>
                     </div>

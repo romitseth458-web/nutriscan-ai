@@ -50,6 +50,7 @@ export default function App() {
   } = useAuth();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isAnalyzingRef = useRef(false);
   const isOnline = useOnlineStatus();
 
   const [selectedImage, setSelectedImage] = useState<PreparedFoodImage | null>(null);
@@ -121,11 +122,13 @@ export default function App() {
   }
 
   async function handleAnalyzeFood(image: PreparedFoodImage, clarification?: string) {
+    if (isAnalyzingRef.current) return;
+    isAnalyzingRef.current = true;
     setIsAnalyzing(true);
     setErrorMessage(null);
 
     const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 45_000);
+    const timeoutId = window.setTimeout(() => controller.abort(), 33_000);
 
     try {
       const response = await fetch('/api/analyze', {
@@ -182,13 +185,14 @@ export default function App() {
     } catch (error) {
       const msg =
         error instanceof DOMException && error.name === 'AbortError'
-          ? 'Food image analysis timed out after 45 seconds. Please check your connection and retry.'
+          ? 'Food image analysis timed out after 33 seconds. Please check your connection and retry.'
           : error instanceof Error
             ? error.message
             : 'Unable to reach the nutrition analysis service.';
       setErrorMessage(msg);
     } finally {
       window.clearTimeout(timeoutId);
+      isAnalyzingRef.current = false;
       setIsAnalyzing(false);
     }
   }

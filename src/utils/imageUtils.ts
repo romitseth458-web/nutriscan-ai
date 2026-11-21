@@ -10,7 +10,8 @@ export interface PreparedFoodImage {
 }
 
 const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024; // 20 MB raw camera photo before client optimization
-const MAX_UPLOAD_DIMENSION = 1440; // Optimal resolution for Gemini Vision & < 4.5 MB Vercel limit
+const MAX_UPLOAD_DIMENSION = 1024; // Fast upload & Gemini Vision optimal size
+const UPLOAD_JPEG_QUALITY = 0.75;
 const ACCEPTED_TYPES = new Set([
   'image/jpeg',
   'image/jpg',
@@ -64,16 +65,18 @@ function loadImageElement(src: string): Promise<HTMLImageElement> {
 }
 
 function renderScaledDataUrl(
-  img: HTMLImageElement,
+  source: HTMLImageElement | HTMLCanvasElement,
+  naturalW: number,
+  naturalH: number,
   maxDimension: number,
   mimeType: 'image/jpeg' | 'image/png',
-  quality = 0.86
+  quality = UPLOAD_JPEG_QUALITY
 ): string {
-  const naturalW = Math.max(1, img.naturalWidth);
-  const naturalH = Math.max(1, img.naturalHeight);
-  const scale = Math.min(1, maxDimension / Math.max(naturalW, naturalH));
-  const width = Math.max(1, Math.round(naturalW * scale));
-  const height = Math.max(1, Math.round(naturalH * scale));
+  const safeW = Math.max(1, naturalW);
+  const safeH = Math.max(1, naturalH);
+  const scale = Math.min(1, maxDimension / Math.max(safeW, safeH));
+  const width = Math.max(1, Math.round(safeW * scale));
+  const height = Math.max(1, Math.round(safeH * scale));
 
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -86,7 +89,7 @@ function renderScaledDataUrl(
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
   }
-  ctx.drawImage(img, 0, 0, width, height);
+  ctx.drawImage(source, 0, 0, width, height);
   return canvas.toDataURL(mimeType, quality);
 }
 
@@ -103,6 +106,42 @@ function readFileAsDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(new Error('Failed to read image file.'));
     reader.readAsDataURL(file);
   });
+}
+
+function buildPreparedImage(
+  source: HTMLImageElement | HTMLCanvasElement,
+  naturalW: number,
+  naturalH: number,
+  fileName: string,
+  fallbackSize: number
+): PreparedFoodImage | null {
+  const normalizedDataUrl = renderScaledDataUrl(
+    source,
+    naturalW,
+    naturalH,
+    MAX_UPLOAD_DIMENSION,
+    'image/jpeg',
+    UPLOAD_JPEG_QUALITY
+  );
+  if (!normalizedDataUrl.startsWith('data:image/jpeg;base64,')) {
+    return null;
+  }
+
+  const base64 = normalizedDataUrl.slice('data:image/jpeg;base64,'.length);
+  const thumbnailDataUrl =
+    renderScaledDataUrl(source, naturalW, naturalH, 240, 'image/jpeg', 0.7) || normalizedDataUrl;
+  const approxUploadedBytes = Math.floor((base64.length * 3) / 4);
+
+  return {
+    previewDataUrl: normalizedDataUrl,
+    thumbnailDataUrl,
+    base64,
+    mimeType: 'image/jpeg',
+    fileName,
+    fileSizeBytes: approxUploadedBytes || fallbackSize,
+    width: naturalW,
+    height: naturalH,
+  };
 }
 
 export async function prepareImageFromFile(file: File): Promise<PreparedFoodImage> {
@@ -128,34 +167,42 @@ export async function prepareImageFromFile(file: File): Promise<PreparedFoodImag
     }
   }
 
-  // Always normalize uploaded photos via canvas to valid JPEG (strips EXIF orientation issues,
-  // converts mismatched .jpg/WebP/HEIC extensions into real JPEG bytes, and keeps payload < 1 MB
-  // so mobile uploads & Vercel serverless requests succeed reliably).
-  let normalizedDataUrl = renderScaledDataUrl(img, MAX_UPLOAD_DIMENSION, 'image/jpeg', 0.86);
-  if (!normalizedDataUrl.startsWith('data:image/jpeg;base64,')) {
-    const rawDataUrl = await readFileAsDataUrl(file);
-    normalizedDataUrl = rawDataUrl;
-  } else if (normalizedDataUrl.length > 2_800_000) {
-    // Secondary compression pass if a dense texture produced > ~2.1 MB binary
-    normalizedDataUrl = renderScaledDataUrl(img, 1200, 'image/jpeg', 0.76) || normalizedDataUrl;
+  const prepared = buildPreparedImage(
+    img,
+    img.naturalWidth,
+    img.naturalHeight,
+    file.name,
+    file.size
+  );
+  if (prepared) {
+    return prepared;
   }
 
-  const isPngOutput = normalizedDataUrl.startsWith('data:image/png;base64,');
-  const mimeType: 'image/jpeg' | 'image/png' = isPngOutput ? 'image/png' : 'image/jpeg';
-  const base64 = normalizedDataUrl.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
-  const thumbnailDataUrl = renderScaledDataUrl(img, 280, 'image/jpeg', 0.76) || normalizedDataUrl;
-  const approxUploadedBytes = Math.floor((base64.length * 3) / 4);
-
+  // Fallback only if canvas export is blocked
+  const rawDataUrl = await readFileAsDataUrl(file);
+  const isPng = rawDataUrl.startsWith('data:image/png;base64,');
+  const base64 = rawDataUrl.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
   return {
-    previewDataUrl: normalizedDataUrl,
-    thumbnailDataUrl,
+    previewDataUrl: rawDataUrl,
+    thumbnailDataUrl: rawDataUrl,
     base64,
-    mimeType,
+    mimeType: isPng ? 'image/png' : 'image/jpeg',
     fileName: file.name,
-    fileSizeBytes: approxUploadedBytes || file.size,
+    fileSizeBytes: file.size,
     width: img.naturalWidth,
     height: img.naturalHeight,
   };
+}
+
+export function prepareImageFromCanvas(
+  canvas: HTMLCanvasElement,
+  fileName: string
+): PreparedFoodImage {
+  const prepared = buildPreparedImage(canvas, canvas.width, canvas.height, fileName, 0);
+  if (!prepared) {
+    throw new Error('Failed to encode captured camera photo.');
+  }
+  return prepared;
 }
 
 export async function prepareImageFromUrl(

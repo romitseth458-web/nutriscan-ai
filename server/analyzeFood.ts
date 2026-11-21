@@ -1,5 +1,7 @@
-import { GoogleGenAI, Type, type Schema } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, Type, type Schema } from '@google/genai';
 import type { FoodAnalysisResult } from '../src/types/nutrition.ts';
+
+const GEMINI_TIMEOUT_MS = 30_000;
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
@@ -116,8 +118,7 @@ const analysisResponseSchema: Schema = {
   properties: {
     identificationStatus: {
       type: Type.STRING,
-      description:
-        'Use "identified" when food is clearly recognizable enough for a reasonable estimate, "needs_clarification" when dish/ingredients/portion are too ambiguous or blurry, and "not_food" when the image does not depict food or beverages.',
+      description: 'One of "identified", "needs_clarification", or "not_food".',
     },
     confidence: {
       type: Type.STRING,
@@ -125,20 +126,19 @@ const analysisResponseSchema: Schema = {
     },
     clarificationQuestion: {
       type: Type.STRING,
-      description:
-        'If identificationStatus is "needs_clarification" or "not_food", a concise, helpful question asking the user what is in the dish, cooking method, or portion size. Empty string if confidently identified.',
+      description: 'Question if needs_clarification or not_food; empty string otherwise.',
     },
     mealTitle: {
       type: Type.STRING,
-      description: 'Human-friendly meal name, e.g. "Grilled Salmon Quinoa Bowl".',
+      description: 'Concise meal name.',
     },
     estimatedServingSizeGrams: {
       type: Type.NUMBER,
-      description: 'Total estimated edible serving weight in grams.',
+      description: 'Total edible weight in grams.',
     },
     servingDescription: {
       type: Type.STRING,
-      description: 'Human-readable serving summary, e.g. "1 medium plate (~420 g)".',
+      description: 'Short serving summary.',
     },
     totals: {
       type: Type.OBJECT,
@@ -153,7 +153,6 @@ const analysisResponseSchema: Schema = {
     },
     items: {
       type: Type.ARRAY,
-      description: 'Individual visible food components detected in the image.',
       items: {
         type: Type.OBJECT,
         properties: {
@@ -164,10 +163,7 @@ const analysisResponseSchema: Schema = {
           carbsGrams: { type: Type.NUMBER },
           fatGrams: { type: Type.NUMBER },
           fiberGrams: { type: Type.NUMBER },
-          preparationNote: {
-            type: Type.STRING,
-            description: 'Short note on preparation or visual cue, e.g. "Pan-seared with light oil".',
-          },
+          preparationNote: { type: Type.STRING },
         },
         required: [
           'name',
@@ -184,10 +180,7 @@ const analysisResponseSchema: Schema = {
     dietSuggestions: {
       type: Type.OBJECT,
       properties: {
-        summary: {
-          type: Type.STRING,
-          description: 'Practical, plain-language nutrition and balance advice for this meal.',
-        },
+        summary: { type: Type.STRING },
         healthierAlternatives: {
           type: Type.ARRAY,
           items: {
@@ -245,8 +238,6 @@ const analysisResponseSchema: Schema = {
     },
     estimationDisclaimer: {
       type: Type.STRING,
-      description:
-        'Brief note reminding the user that visual calorie and macro values are estimates and vary by hidden oils, sauces, and exact portion weights.',
     },
   },
   required: [
@@ -263,8 +254,22 @@ const analysisResponseSchema: Schema = {
   ],
 };
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new UpstreamApiError(message, 504));
+    }, ms);
+    promise.then(
+      (val) => {
+        clearTimeout(timer);
+        resolve(val);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      }
+    );
+  });
 }
 
 function round1(val: number): number {
@@ -522,36 +527,35 @@ export async function analyzeFoodImage(input: AnalyzeFoodInput): Promise<FoodAna
     },
   });
 
-  const systemInstruction = `You are a registered dietitian and computer-vision nutrition analyst for RosoFood AI.
-Analyze the uploaded food or fruit photograph carefully and return structured nutritional estimates in JSON.
-
+  const systemInstruction = `Fast nutrition vision analyst for RosoFood AI. Return compact JSON nutrition facts for any food, fruit, South/North Indian dish, snack, or beverage.
 Rules:
-1. Recognize ALL categories of food and ALL fruits: fresh fruits (apples, bananas, mangoes, papayas, melons, citrus, berries, kiwi, pomegranate, guava, grapes, custard apple, chikoo, lychee, dragon fruit, dates, etc.), South Indian meals & tiffins (idli, rava idli, plain/masala/rava dosa, pesarattu, adai, uttapam, medu vada, paniyaram, ven pongal, upma, appam with stew, idiyappam, puttu with kadala curry, bisibele bath, curd rice, lemon rice, puliyogare, sambar, rasam, avial, poriyal, malabar parotta, chettinad chicken, kerala fish curry, filter coffee), North & Pan-Indian dishes (roti, paratha, dal, rice, paneer, thali, rajma, chole, biryani, chaat, dhokla, pav bhaji), global meals, proteins, dairy, nuts/seeds, snacks, fast food, and beverages.
-2. Identify all distinct visible food or fruit items on the plate/bowl/table when multiple items are present.
-3. Estimate realistic portion sizes in grams using visual cues (plate diameter, fruit count/size, utensil scale, food density).
-4. Ensure the meal totals (caloriesKcal, proteinGrams, carbsGrams, fatGrams, fiberGrams) and estimatedServingSizeGrams are consistent with the sum of the detected items.
-5. If the image is NOT food/beverage/fruit, set identificationStatus to "not_food", confidence to "low", zero out nutrition totals, empty items, and set clarificationQuestion explaining that no food was detected and asking for a meal or fruit photo.
-6. If the food is too blurry, heavily obscured, or visually ambiguous AND no helpful user clarification was provided, set identificationStatus to "needs_clarification", confidence to "low", and write a specific, helpful clarificationQuestion asking what dish, sauce, or portion size it is.
-7. When identificationStatus is "identified", provide practical, realistic dietSuggestions including:
-   - 2-3 healthierAlternatives with realistic estimated calorie savings
-   - 2-3 highProteinOptions with estimated protein boost in grams
-   - 2-3 vegetarianOptions (plant-forward or lacto-ovo vegetarian swaps/additions)
-   - 2-3 nonVegetarianOptions (lean meat/fish/poultry swaps/additions)
-8. Keep all copy concise, accurate, and grounded in nutritional science.`;
+1. Identify up to 6 main visible food items with realistic portion grams, calories, protein, carbs, fat, and fiber, plus meal totals.
+2. Not food -> identificationStatus="not_food", confidence="low", zero totals, empty items, short clarificationQuestion.
+3. Too blurry/ambiguous (and no clarification) -> identificationStatus="needs_clarification", confidence="low", short clarificationQuestion.
+4. Keep summary (1 short sentence) and each dietSuggestions list concise (1 short option per list, <=12 words each).`;
 
   const promptText = userClarification
-    ? `Analyze this food image. The user provided this clarification to help identify the meal or portion: "${userClarification}". Estimate portion weights in grams, calories, protein, carbs, fat, fiber, and tailored diet recommendations.`
-    : `Analyze this food image. Identify all visible food items, estimate portion weights in grams, calculate calories, protein, carbs, fat, fiber, and provide tailored vegetarian, non-vegetarian, and high-protein diet recommendations. If you cannot reliably identify the dish, ask for clarification.`;
+    ? `Identify this food (${userClarification}) and return compact JSON nutrition + diet tips.`
+    : `Identify this food and return compact JSON nutrition facts + diet tips.`;
 
-  const modelsToTry = ['gemini-4-hydrogen', 'gemini-3.1-flash-lite'] as const;
+  const modelCandidates = [
+    {
+      model: 'gemini-3.1-flash-lite' as const,
+      thinkingConfig: undefined,
+    },
+    {
+      model: 'gemini-4-hydrogen' as const,
+      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+    },
+  ];
   let lastError: unknown;
 
-  for (const modelName of modelsToTry) {
-    let shouldTryNextModel = false;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
+  // Make one request on the fastest Flash model; only use fallback once if transient error occurs
+  for (const candidate of modelCandidates) {
+    try {
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model: candidate.model,
           contents: {
             parts: [
               {
@@ -567,47 +571,41 @@ Rules:
             systemInstruction,
             responseMimeType: 'application/json',
             responseSchema: analysisResponseSchema,
+            ...(candidate.thinkingConfig ? { thinkingConfig: candidate.thinkingConfig } : {}),
           },
-        });
+        }),
+        GEMINI_TIMEOUT_MS,
+        'Food analysis timed out. Please try again.'
+      );
 
-        const blockReason = response.candidates?.[0]?.finishReason;
-        const jsonText = (response.text ?? '').trim();
-        if (!jsonText) {
-          if (blockReason && String(blockReason) !== 'STOP') {
-            throw new UpstreamApiError(
-              `Image analysis could not complete (${String(blockReason)}). Please try a clearer food photo.`,
-              422
-            );
-          }
-          throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
+      const blockReason = response.candidates?.[0]?.finishReason;
+      const jsonText = (response.text ?? '').trim();
+      if (!jsonText) {
+        if (blockReason && String(blockReason) !== 'STOP') {
+          throw new UpstreamApiError(
+            `Image analysis could not complete (${String(blockReason)}). Please try a clearer food photo.`,
+            422
+          );
         }
+        throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
+      }
 
-        const parsed = parseModelJson(jsonText);
-        return sanitizeResult(parsed);
-      } catch (error: unknown) {
-        lastError = error;
-        const extracted = extractErrorDetails(error, 'Failed to analyze food image with Gemini Vision.');
+      const parsed = parseModelJson(jsonText);
+      return sanitizeResult(parsed);
+    } catch (error: unknown) {
+      lastError = error;
+      const extracted = extractErrorDetails(error, 'Failed to analyze food image with Gemini Vision.');
 
-        if (extracted.status === 400 || extracted.status === 401 || extracted.status === 403 || extracted.status === 404) {
-          shouldTryNextModel = false;
-          break;
-        }
-
-        if (isRetryableFailure(error, extracted)) {
-          shouldTryNextModel = true;
-          if (attempt < 1) {
-            await sleep(450 * (attempt + 1));
-          }
-          continue;
-        }
-
-        shouldTryNextModel = false;
+      if (
+        extracted.status === 400 ||
+        extracted.status === 401 ||
+        extracted.status === 403 ||
+        extracted.status === 404 ||
+        extracted.status === 504 ||
+        !isRetryableFailure(error, extracted)
+      ) {
         break;
       }
-    }
-
-    if (!shouldTryNextModel) {
-      break;
     }
   }
 
@@ -637,66 +635,60 @@ export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult
     },
   });
 
-  const systemInstruction = `You are a registered dietitian for RosoFood AI.
-Given a user-entered food, fruit, snack, beverage, or meal description (with optional portion size or count), return accurate structured nutritional estimates in JSON.
+  const systemInstruction = `Fast nutrition analyst for RosoFood AI. Return compact JSON nutrition facts for any food, fruit, South/North Indian dish, or beverage. Split mixed meals into up to 6 items and provide meal totals. If not food, set identificationStatus="not_food" with zero totals. Keep summary (1 short sentence) and dietSuggestions concise (1 short option per list, <=12 words each).`;
 
-Rules:
-1. Support EVERY kind of food and EVERY fruit (fresh fruits, dried fruits, juices, South Indian dishes like idli, dosa, pesarattu, uttapam, vada, pongal, appam, puttu, bisibele bath, curd rice, lemon rice, sambar, rasam, avial, poriyal, parotta, chettinad & kerala curries; North & Pan-Indian meals like roti, paratha, dal, paneer, chole, rajma, biryani, khichdi, dhokla, chaat; global cuisine, fast food, dairy, nuts/seeds, protein foods).
-2. Break mixed meals down into individual items in "items" (e.g., "2 rotis + 1 bowl dal" -> 2 separate items). For single items like "1 medium mango", include 1 item with its standard edible weight in grams.
-3. If the input is clearly NOT an edible food, fruit, or drink, set identificationStatus to "not_food", confidence to "low", zero out macros, and write a helpful clarificationQuestion.
-4. Ensure meal totals match the sum of items.
-5. Provide realistic healthierAlternatives, highProteinOptions, vegetarianOptions, and nonVegetarianOptions.`;
+  const promptText = `Estimate compact JSON nutrition and diet tips for: "${trimmed}"`;
 
-  const promptText = `Estimate complete nutrition facts, portion weight in grams, macros, fiber, and tailored diet recommendations for: "${trimmed}"`;
-
-  const modelsToTry = ['gemini-4-hydrogen', 'gemini-3.1-flash-lite'] as const;
+  const modelCandidates = [
+    {
+      model: 'gemini-3.1-flash-lite' as const,
+      thinkingConfig: undefined,
+    },
+    {
+      model: 'gemini-4-hydrogen' as const,
+      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+    },
+  ];
   let lastError: unknown;
 
-  for (const modelName of modelsToTry) {
-    let shouldTryNextModel = false;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
+  for (const candidate of modelCandidates) {
+    try {
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model: candidate.model,
           contents: promptText,
           config: {
             systemInstruction,
             responseMimeType: 'application/json',
             responseSchema: analysisResponseSchema,
+            ...(candidate.thinkingConfig ? { thinkingConfig: candidate.thinkingConfig } : {}),
           },
-        });
+        }),
+        GEMINI_TIMEOUT_MS,
+        'Food nutrition estimation timed out. Please try again.'
+      );
 
-        const jsonText = (response.text ?? '').trim();
-        if (!jsonText) {
-          throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
-        }
+      const jsonText = (response.text ?? '').trim();
+      if (!jsonText) {
+        throw new UpstreamApiError('Gemini returned an empty response. Please try again.', 502);
+      }
 
-        const parsed = parseModelJson(jsonText);
-        return sanitizeResult(parsed);
-      } catch (error: unknown) {
-        lastError = error;
-        const extracted = extractErrorDetails(error, 'Failed to estimate nutrition for this food.');
+      const parsed = parseModelJson(jsonText);
+      return sanitizeResult(parsed);
+    } catch (error: unknown) {
+      lastError = error;
+      const extracted = extractErrorDetails(error, 'Failed to estimate nutrition for this food.');
 
-        if (extracted.status === 400 || extracted.status === 401 || extracted.status === 403 || extracted.status === 404) {
-          shouldTryNextModel = false;
-          break;
-        }
-
-        if (isRetryableFailure(error, extracted)) {
-          shouldTryNextModel = true;
-          if (attempt < 1) {
-            await sleep(450 * (attempt + 1));
-          }
-          continue;
-        }
-
-        shouldTryNextModel = false;
+      if (
+        extracted.status === 400 ||
+        extracted.status === 401 ||
+        extracted.status === 403 ||
+        extracted.status === 404 ||
+        extracted.status === 504 ||
+        !isRetryableFailure(error, extracted)
+      ) {
         break;
       }
-    }
-
-    if (!shouldTryNextModel) {
-      break;
     }
   }
 

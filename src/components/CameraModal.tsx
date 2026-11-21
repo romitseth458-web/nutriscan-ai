@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, RefreshCw, X, AlertCircle } from 'lucide-react';
-import { prepareImageFromFile, type PreparedFoodImage } from '../utils/imageUtils';
+import { prepareImageFromCanvas, type PreparedFoodImage } from '../utils/imageUtils';
 
 interface CameraModalProps {
   isOpen: boolean;
@@ -83,7 +83,7 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
 
   if (!isOpen) return null;
 
-  async function handleTakeSnapshot() {
+  function handleTakeSnapshot() {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return;
 
@@ -94,19 +94,8 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
     if (!ctx) return;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.9)
-    );
-    if (!blob) {
-      setError('Failed to capture photo frame. Please try again.');
-      return;
-    }
-
-    const file = new File([blob], `meal-capture-${Date.now()}.jpg`, {
-      type: 'image/jpeg',
-    });
     try {
-      const prepared = await prepareImageFromFile(file);
+      const prepared = prepareImageFromCanvas(canvas, `meal-capture-${Date.now()}.jpg`);
       onCapture(prepared);
       onClose();
     } catch (err) {
