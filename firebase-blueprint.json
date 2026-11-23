@@ -36,7 +36,7 @@
         },
         "dietProfile": {
           "type": "object",
-          "description": "Optional body metrics, activity level, fitness goal, and dietary preference for personalized diet coaching."
+          "description": "Optional body metrics (age, heightCm, weightKg, sex), activity level, fitness goal, dietary preference, and dailyBudgetInr for personalized diet coaching and meal planning."
         },
         "createdAt": {
           "type": "string",
@@ -119,6 +119,109 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "MealPlan": {
+      "title": "MealPlan",
+      "description": "A personalized 5-meal Indian daily diet plan saved privately by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique saved meal plan identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the meal plan owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "planName": {
+          "type": "string",
+          "description": "User-facing label for the saved meal plan.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "input": {
+          "type": "object",
+          "description": "User parameters (age, heightCm, weightKg, sex, fitnessGoal, activityLevel, dietaryPreference, dailyBudgetInr) used to generate the plan."
+        },
+        "targetDailyCaloriesKcal": {
+          "type": "number",
+          "description": "Safe calculated daily calorie target (>= 1200 kcal)."
+        },
+        "estimatedBmrKcal": {
+          "type": "number",
+          "description": "Mifflin-St Jeor Basal Metabolic Rate estimate."
+        },
+        "estimatedTdeeKcal": {
+          "type": "number",
+          "description": "Estimated Total Daily Energy Expenditure."
+        },
+        "safetyNote": {
+          "type": "string",
+          "description": "Safety explanation and calorie pace guidance.",
+          "maxLength": 500
+        },
+        "hydrationTip": {
+          "type": "string",
+          "description": "Daily hydration and meal timing tip.",
+          "maxLength": 500
+        },
+        "budgetSummary": {
+          "type": "string",
+          "description": "Summary of how affordable Indian staples fit the daily food budget.",
+          "maxLength": 500
+        },
+        "totals": {
+          "type": "object",
+          "description": "Estimated daily calories, protein, carbs, fat, and fiber totals."
+        },
+        "estimatedTotalCostInr": {
+          "type": "number",
+          "description": "Approximate total daily ingredient cost in INR."
+        },
+        "meals": {
+          "type": "array",
+          "description": "Exactly 5 planned Indian meals (Breakfast, Mid-Morning Snack, Lunch, Evening Snack, Dinner)."
+        },
+        "estimationDisclaimer": {
+          "type": "string",
+          "description": "Explicit estimate & non-medical nutrition disclaimer.",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "planName",
+        "input",
+        "targetDailyCaloriesKcal",
+        "estimatedBmrKcal",
+        "estimatedTdeeKcal",
+        "safetyNote",
+        "hydrationTip",
+        "budgetSummary",
+        "totals",
+        "estimatedTotalCostInr",
+        "meals",
+        "estimationDisclaimer",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -129,6 +232,10 @@
     "/users/{userId}/meals/{mealId}": {
       "schema": { "$ref": "#/entities/TrackedMeal" },
       "description": "Private daily food diary entries scoped strictly to the owning user."
+    },
+    "/users/{userId}/mealPlans/{planId}": {
+      "schema": { "$ref": "#/entities/MealPlan" },
+      "description": "Private personalized 5-meal Indian meal plans scoped strictly to the owning user."
     }
   }
 }

@@ -139,6 +139,10 @@ export function ProfileModal({
     if (!onSaveDietProfile) return;
 
     const nextProfile: UserDietProfile = {};
+    if (currentDietProfile.sex) nextProfile.sex = currentDietProfile.sex;
+    if (typeof currentDietProfile.dailyBudgetInr === 'number') {
+      nextProfile.dailyBudgetInr = currentDietProfile.dailyBudgetInr;
+    }
     if (ageInput.trim()) {
       const parsedAge = Number(ageInput);
       if (!Number.isFinite(parsedAge) || parsedAge < 13 || parsedAge > 100) {

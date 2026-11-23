@@ -43,13 +43,15 @@ service cloud.firestore {
 
     function isValidDietProfile(profile) {
       return profile is map
-        && profile.keys().hasOnly(['age', 'heightCm', 'weightKg', 'activityLevel', 'fitnessGoal', 'dietaryPreference'])
+        && profile.keys().hasOnly(['age', 'heightCm', 'weightKg', 'sex', 'activityLevel', 'fitnessGoal', 'dietaryPreference', 'dailyBudgetInr'])
         && (!('age' in profile) || ((profile.age is int || profile.age is float) && profile.age >= 13 && profile.age <= 100))
         && (!('heightCm' in profile) || ((profile.heightCm is int || profile.heightCm is float) && profile.heightCm >= 100 && profile.heightCm <= 250))
         && (!('weightKg' in profile) || ((profile.weightKg is int || profile.weightKg is float) && profile.weightKg >= 25 && profile.weightKg <= 300))
+        && (!('sex' in profile) || (profile.sex is string && profile.sex.size() <= 10 && profile.sex in ['male', 'female']))
         && (!('activityLevel' in profile) || (profile.activityLevel is string && profile.activityLevel.size() <= 20 && profile.activityLevel in ['sedentary', 'light', 'moderate', 'active']))
         && (!('fitnessGoal' in profile) || (profile.fitnessGoal is string && profile.fitnessGoal.size() <= 24 && profile.fitnessGoal in ['weight_loss', 'weight_gain', 'muscle_building', 'maintenance']))
-        && (!('dietaryPreference' in profile) || (profile.dietaryPreference is string && profile.dietaryPreference.size() <= 24 && profile.dietaryPreference in ['vegetarian', 'non-vegetarian', 'eggetarian', 'vegan']));
+        && (!('dietaryPreference' in profile) || (profile.dietaryPreference is string && profile.dietaryPreference.size() <= 24 && profile.dietaryPreference in ['vegetarian', 'non-vegetarian', 'eggetarian', 'vegan']))
+        && (!('dailyBudgetInr' in profile) || ((profile.dailyBudgetInr is int || profile.dailyBudgetInr is float) && profile.dailyBudgetInr >= 50 && profile.dailyBudgetInr <= 5000));
     }
 
     function isValidUserProfile(data, userId) {
@@ -155,6 +157,97 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidMealPlanInput(input) {
+      return input is map
+        && input.keys().hasAll([
+          'age',
+          'heightCm',
+          'weightKg',
+          'sex',
+          'fitnessGoal',
+          'activityLevel',
+          'dietaryPreference',
+          'dailyBudgetInr'
+        ])
+        && input.keys().hasOnly([
+          'age',
+          'heightCm',
+          'weightKg',
+          'sex',
+          'fitnessGoal',
+          'activityLevel',
+          'dietaryPreference',
+          'dailyBudgetInr'
+        ])
+        && (input.age is int || input.age is float) && input.age >= 13 && input.age <= 100
+        && (input.heightCm is int || input.heightCm is float) && input.heightCm >= 100 && input.heightCm <= 250
+        && (input.weightKg is int || input.weightKg is float) && input.weightKg >= 25 && input.weightKg <= 300
+        && input.sex is string && input.sex.size() <= 10 && input.sex in ['male', 'female']
+        && input.fitnessGoal is string && input.fitnessGoal.size() <= 24 && input.fitnessGoal in ['weight_loss', 'weight_gain', 'muscle_building', 'maintenance']
+        && input.activityLevel is string && input.activityLevel.size() <= 20 && input.activityLevel in ['sedentary', 'light', 'moderate', 'active']
+        && input.dietaryPreference is string && input.dietaryPreference.size() <= 24 && input.dietaryPreference in ['vegetarian', 'non-vegetarian', 'eggetarian', 'vegan']
+        && (input.dailyBudgetInr is int || input.dailyBudgetInr is float) && input.dailyBudgetInr >= 50 && input.dailyBudgetInr <= 5000;
+    }
+
+    function isValidMealPlan(data, userId, planId) {
+      return data.keys().hasAll([
+          'id',
+          'userId',
+          'planName',
+          'input',
+          'targetDailyCaloriesKcal',
+          'estimatedBmrKcal',
+          'estimatedTdeeKcal',
+          'safetyNote',
+          'hydrationTip',
+          'budgetSummary',
+          'totals',
+          'estimatedTotalCostInr',
+          'meals',
+          'estimationDisclaimer',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id',
+          'userId',
+          'planName',
+          'input',
+          'targetDailyCaloriesKcal',
+          'estimatedBmrKcal',
+          'estimatedTdeeKcal',
+          'safetyNote',
+          'hydrationTip',
+          'budgetSummary',
+          'totals',
+          'estimatedTotalCostInr',
+          'meals',
+          'estimationDisclaimer',
+          'createdAt',
+          'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == planId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.planName is string && data.planName.size() >= 1 && data.planName.size() <= 120
+        && isValidMealPlanInput(data.input)
+        && (data.targetDailyCaloriesKcal is int || data.targetDailyCaloriesKcal is float) && data.targetDailyCaloriesKcal >= 1200 && data.targetDailyCaloriesKcal <= 6000
+        && (data.estimatedBmrKcal is int || data.estimatedBmrKcal is float) && data.estimatedBmrKcal >= 800 && data.estimatedBmrKcal <= 4500
+        && (data.estimatedTdeeKcal is int || data.estimatedTdeeKcal is float) && data.estimatedTdeeKcal >= 1000 && data.estimatedTdeeKcal <= 7000
+        && data.safetyNote is string && data.safetyNote.size() <= 500
+        && data.hydrationTip is string && data.hydrationTip.size() <= 500
+        && data.budgetSummary is string && data.budgetSummary.size() <= 500
+        && isValidMacroTotals(data.totals)
+        && (data.estimatedTotalCostInr is int || data.estimatedTotalCostInr is float) && data.estimatedTotalCostInr >= 0 && data.estimatedTotalCostInr <= 10000
+        && data.meals is list && data.meals.size() == 5
+        && data.meals[0] is map
+        && data.estimationDisclaimer is string && data.estimationDisclaimer.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // Private User Profile & Goals (PII isolated per userId)
     match /users/{userId} {
       allow get: if isValidId(userId) && isOwner(userId);
@@ -206,6 +299,48 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/users/$(userId))
           && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
         allow delete: if isValidId(userId) && isValidId(mealId) && isOwner(userId) && isVerified();
+      }
+
+      // Private Personalized Indian Meal Plans subcollection
+      match /mealPlans/{planId} {
+        allow get: if isValidId(userId) && isValidId(planId) && isOwner(userId);
+        allow list: if isOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(planId)
+          && isOwner(userId)
+          && isVerified()
+          && isValidMealPlan(incoming(), userId, planId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow update: if isValidId(userId)
+          && isValidId(planId)
+          && isOwner(userId)
+          && isVerified()
+          && isValidMealPlan(incoming(), userId, planId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'planName',
+            'input',
+            'targetDailyCaloriesKcal',
+            'estimatedBmrKcal',
+            'estimatedTdeeKcal',
+            'safetyNote',
+            'hydrationTip',
+            'budgetSummary',
+            'totals',
+            'estimatedTotalCostInr',
+            'meals',
+            'estimationDisclaimer',
+            'updatedAt'
+          ])
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow delete: if isValidId(userId) && isValidId(planId) && isOwner(userId) && isVerified();
       }
     }
   }

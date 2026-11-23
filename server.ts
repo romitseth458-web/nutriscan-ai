@@ -11,6 +11,11 @@ import {
 } from './server/analyzeFood.ts';
 import { setupLiveDietAssistantWebSocket } from './server/liveDietAssistant.ts';
 import { createLiveEphemeralToken, LiveTokenError } from './server/liveToken.ts';
+import {
+  generateFullIndianMealPlan,
+  regenerateSingleMealSlot,
+  replaceMealFoodItem,
+} from './server/mealPlanner.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,6 +100,56 @@ app.post('/api/analyze-text', async (req, res) => {
 
     const result = await analyzeFoodText(query);
     res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    if (error instanceof UpstreamApiError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : 'Unexpected server error.';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/meal-plan', async (req, res) => {
+  try {
+    const body = req.body ?? {};
+    const action = typeof body.action === 'string' ? body.action : 'generate_plan';
+
+    if (action === 'generate_plan') {
+      const plan = await generateFullIndianMealPlan(body.input);
+      res.status(200).json({ plan });
+      return;
+    }
+
+    if (action === 'regenerate_meal') {
+      const meal = await regenerateSingleMealSlot({
+        input: body.input,
+        slotId: body.slotId,
+        targetSlotCalories: body.targetSlotCalories,
+        currentMealTitle: body.currentMealTitle,
+      });
+      res.status(200).json({ meal });
+      return;
+    }
+
+    if (action === 'replace_item') {
+      const item = await replaceMealFoodItem({
+        input: body.input,
+        slotId: body.slotId,
+        currentItemName: body.currentItemName,
+        targetCalories: body.targetCalories,
+        preferredReplacement: body.preferredReplacement,
+      });
+      res.status(200).json({ item });
+      return;
+    }
+
+    res.status(400).json({ error: `Unsupported meal-plan action: ${action}` });
   } catch (error) {
     if (error instanceof ValidationError) {
       res.status(error.statusCode).json({ error: error.message });

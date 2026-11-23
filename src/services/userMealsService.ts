@@ -95,6 +95,9 @@ export function sanitizeDietProfile(
   if (typeof raw.weightKg === 'number' && Number.isFinite(raw.weightKg)) {
     clean.weightKg = Math.round(Math.min(300, Math.max(25, raw.weightKg)) * 10) / 10;
   }
+  if (raw.sex === 'male' || raw.sex === 'female') {
+    clean.sex = raw.sex;
+  }
   if (
     typeof raw.activityLevel === 'string' &&
     VALID_ACTIVITY_LEVELS.has(raw.activityLevel as DietActivityLevel)
@@ -112,6 +115,9 @@ export function sanitizeDietProfile(
     VALID_DIETARY_PREFERENCES.has(raw.dietaryPreference as DietaryPreference)
   ) {
     clean.dietaryPreference = raw.dietaryPreference as DietaryPreference;
+  }
+  if (typeof raw.dailyBudgetInr === 'number' && Number.isFinite(raw.dailyBudgetInr)) {
+    clean.dailyBudgetInr = Math.round(Math.min(5000, Math.max(50, raw.dailyBudgetInr)));
   }
 
   return clean;

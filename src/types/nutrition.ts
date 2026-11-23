@@ -96,11 +96,82 @@ export type DietaryPreference =
   | 'eggetarian'
   | 'vegan';
 
+export type DietBiologicalSex = 'male' | 'female';
+
 export interface UserDietProfile {
   age?: number;
   heightCm?: number;
   weightKg?: number;
+  sex?: DietBiologicalSex;
   activityLevel?: DietActivityLevel;
   fitnessGoal?: DietFitnessGoal;
   dietaryPreference?: DietaryPreference;
+  dailyBudgetInr?: number;
+}
+
+// ==================== AI PERSONALIZED INDIAN MEAL PLANNER TYPES ====================
+
+export type MealPlanSlotId =
+  | 'breakfast'
+  | 'mid_morning'
+  | 'lunch'
+  | 'evening_snack'
+  | 'dinner';
+
+export type MealPlanSlotLabel =
+  | 'Breakfast'
+  | 'Mid-Morning Snack'
+  | 'Lunch'
+  | 'Evening Snack'
+  | 'Dinner';
+
+export interface MealPlannerInput {
+  age: number;
+  heightCm: number;
+  weightKg: number;
+  sex: DietBiologicalSex;
+  fitnessGoal: DietFitnessGoal;
+  activityLevel: DietActivityLevel;
+  dietaryPreference: DietaryPreference;
+  dailyBudgetInr: number;
+}
+
+export interface PlannedFoodItem extends MacroTotals {
+  id: string;
+  name: string;
+  hindiName?: string;
+  portionGrams: number;
+  portionLabel: string;
+  estimatedCostInr: number;
+  preparationNote: string;
+  nutritionSource: NutritionDataSource;
+  referenceFoodId?: string;
+}
+
+export interface PlannedMeal {
+  slotId: MealPlanSlotId;
+  slotLabel: MealPlanSlotLabel;
+  timingWindow: string;
+  title: string;
+  totals: MacroTotals;
+  estimatedCostInr: number;
+  items: PlannedFoodItem[];
+  tip: string;
+}
+
+export interface IndianMealPlan {
+  id: string;
+  planName: string;
+  input: MealPlannerInput;
+  targetDailyCaloriesKcal: number;
+  estimatedBmrKcal: number;
+  estimatedTdeeKcal: number;
+  safetyNote: string;
+  hydrationTip: string;
+  budgetSummary: string;
+  totals: MacroTotals;
+  estimatedTotalCostInr: number;
+  meals: PlannedMeal[];
+  estimationDisclaimer: string;
+  updatedAtIso: string;
 }

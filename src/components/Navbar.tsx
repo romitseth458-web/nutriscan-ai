@@ -16,6 +16,7 @@ interface NavbarProps {
 const NAV_LINKS = [
   { href: '#analyzer', label: 'Scanner' },
   { href: '#food-directory', label: 'Foods & Fruits' },
+  { href: '#meal-planner', label: 'Meal Planner' },
   { href: '#results', label: 'Nutrition' },
   { href: '#daily-tracker', label: 'Food Diary' },
   { href: '#faq', label: 'FAQ' },

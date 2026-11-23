@@ -20,10 +20,16 @@ import { FoodExplorerSection } from './components/FoodExplorerSection';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { DietSuggestionsSection } from './components/DietSuggestionsSection';
 import { DailyTrackerSection } from './components/DailyTrackerSection';
+import { MealPlannerSection } from './components/MealPlannerSection';
 import { FaqSection } from './components/FaqSection';
 import { GoalCalculatorModal } from './components/GoalCalculatorModal';
 import { ProfileModal } from './components/ProfileModal';
 import { VoiceDietAssistantModal } from './components/VoiceDietAssistantModal';
+import {
+  deleteMealPlanForUser,
+  saveMealPlanForUser,
+  subscribeToUserMealPlans,
+} from './services/mealPlanService';
 import {
   clearDayMealsForUser,
   deleteMealForUser,
@@ -35,6 +41,7 @@ import {
 import type {
   DailyNutritionGoals,
   FoodAnalysisResult,
+  IndianMealPlan,
   MealCategory,
   TrackedMealEntry,
   UserDietProfile,
@@ -68,6 +75,7 @@ export default function App() {
   const [isCheckingVerify, setIsCheckingVerify] = useState(false);
 
   const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
+  const [savedMealPlans, setSavedMealPlans] = useState<IndianMealPlan[]>([]);
   const [dailyGoals, setDailyGoals] = useState<DailyNutritionGoals>(DEFAULT_DAILY_GOALS);
   const [selectedDateKey, setSelectedDateKey] = useState<string>(() => getLocalDateKey());
 
@@ -80,10 +88,11 @@ export default function App() {
     }
   }, [userProfile, user]);
 
-  // Clear state when user signs out or switches accounts, and attach private Firestore meal listener
+  // Clear state when user signs out or switches accounts, and attach private Firestore listeners
   useEffect(() => {
     if (!authReady || !user) {
       setTrackedMeals([]);
+      setSavedMealPlans([]);
       setSelectedImage(null);
       setActivePreviewUrl(null);
       setAnalysisResult(null);
@@ -95,14 +104,21 @@ export default function App() {
 
     if (!user.emailVerified) {
       setTrackedMeals([]);
+      setSavedMealPlans([]);
       return;
     }
 
-    const unsubscribe = subscribeToUserMeals(user.uid, (meals) => {
+    const unsubscribeMeals = subscribeToUserMeals(user.uid, (meals) => {
       setTrackedMeals(meals);
     });
+    const unsubscribePlans = subscribeToUserMealPlans(user.uid, (plans) => {
+      setSavedMealPlans(plans);
+    });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeMeals();
+      unsubscribePlans();
+    };
   }, [authReady, user, user?.uid, user?.emailVerified]);
 
   function showToast(message: string) {
@@ -285,6 +301,25 @@ export default function App() {
     }
     await saveUserDietProfile(user.uid, nextProfile);
     showToast('Saved your diet & body profile');
+  }
+
+  async function handleSaveMealPlan(plan: IndianMealPlan): Promise<string> {
+    if (!user) return plan.id;
+    if (!user.emailVerified) {
+      showToast('Verify your email address first to save meal plans in Firestore.');
+      return plan.id;
+    }
+    return saveMealPlanForUser(user.uid, plan);
+  }
+
+  async function handleDeleteMealPlan(planId: string) {
+    if (!user || !user.emailVerified) return;
+    try {
+      await deleteMealPlanForUser(user.uid, planId);
+      showToast('Saved meal plan removed');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to delete meal plan.');
+    }
   }
 
   function handleInspectEntry(entry: TrackedMealEntry) {
@@ -504,6 +539,19 @@ export default function App() {
 
           <DietSuggestionsSection analysis={analysisResult} />
 
+          <MealPlannerSection
+            dietProfile={userProfile?.dietProfile}
+            savedPlans={savedMealPlans}
+            isEmailVerified={Boolean(user.emailVerified)}
+            onSaveDietProfile={handleSaveDietProfile}
+            onSaveMealPlan={handleSaveMealPlan}
+            onDeleteMealPlan={handleDeleteMealPlan}
+            onLogPlannedMeal={async (category, analysis) => {
+              await persistMealEntry(category, analysis, '');
+            }}
+            onShowToast={showToast}
+          />
+
           <DailyTrackerSection
             entries={trackedMeals}
             selectedDateKey={selectedDateKey}
@@ -546,6 +594,9 @@ export default function App() {
                 </a>
                 <a href="#food-directory" className="hover:text-[#241118]">
                   Foods &amp; Fruits
+                </a>
+                <a href="#meal-planner" className="hover:text-[#241118]">
+                  AI Meal Planner
                 </a>
                 <a href="#results" className="hover:text-[#241118]">
                   Nutrition Dashboard
