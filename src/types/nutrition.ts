@@ -1,6 +1,7 @@
 export type IdentificationStatus = 'identified' | 'needs_clarification' | 'not_food';
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
 export type MealCategory = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack';
+export type NutritionDataSource = 'reference_db' | 'gemini_estimate' | 'unavailable';
 
 export interface MacroTotals {
   caloriesKcal: number;
@@ -12,6 +13,14 @@ export interface MacroTotals {
 
 export interface DetectedFoodItem extends MacroTotals {
   name: string;
+  hindiName?: string;
+  regionalCuisine?: string;
+  cookingMethod?: string;
+  keyIngredients?: string[];
+  oilGheeSugarNote?: string;
+  nutritionSource?: NutritionDataSource;
+  referenceFoodId?: string;
+  confidence?: ConfidenceLevel;
   portionGrams: number;
   preparationNote: string;
 }
@@ -46,6 +55,8 @@ export interface FoodAnalysisResult {
   confidence: ConfidenceLevel;
   clarificationQuestion: string;
   mealTitle: string;
+  cuisineRegion?: string;
+  requiresUserConfirmation?: boolean;
   estimatedServingSizeGrams: number;
   servingDescription: string;
   totals: MacroTotals;

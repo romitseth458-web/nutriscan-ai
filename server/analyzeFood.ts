@@ -1,7 +1,11 @@
 import { GoogleGenAI, ThinkingLevel, Type, type Schema } from '@google/genai';
-import type { FoodAnalysisResult } from '../src/types/nutrition.ts';
+import {
+  computeMacrosFromReference,
+  findIndianFoodReference,
+} from '../src/data/indianFoodReferenceDb.ts';
+import type { DetectedFoodItem, FoodAnalysisResult } from '../src/types/nutrition.ts';
 
-const GEMINI_TIMEOUT_MS = 30_000;
+const GEMINI_TIMEOUT_MS = 32_000;
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
@@ -106,7 +110,6 @@ function validateAndDetectImage(
     );
   }
 
-  // Trust actual magic bytes if extension/mime metadata mismatched (common with mobile/WhatsApp saves)
   return {
     cleanBase64: cleaned,
     resolvedMimeType: detectedMime || declaredMimeType,
@@ -122,23 +125,29 @@ const analysisResponseSchema: Schema = {
     },
     confidence: {
       type: Type.STRING,
-      description: 'One of "high", "medium", or "low".',
+      description: 'Overall confidence: "high", "medium", or "low".',
     },
     clarificationQuestion: {
       type: Type.STRING,
-      description: 'Question if needs_clarification or not_food; empty string otherwise.',
+      description:
+        'Specific question asking user to confirm unclear dish/oil/portion if needs_clarification or not_food; empty string when clear.',
     },
     mealTitle: {
       type: Type.STRING,
-      description: 'Concise meal name.',
+      description: 'Concise meal/thali title (English, with Hindi/regional term if iconic).',
+    },
+    cuisineRegion: {
+      type: Type.STRING,
+      description:
+        'Detected cuisine region such as "North Indian", "South Indian", "Punjabi", "Bengali", "Bihari", "Gujarati", "Pan-Indian", or "International".',
     },
     estimatedServingSizeGrams: {
       type: Type.NUMBER,
-      description: 'Total edible weight in grams.',
+      description: 'Total estimated edible weight in grams.',
     },
     servingDescription: {
       type: Type.STRING,
-      description: 'Short serving summary.',
+      description: 'Short serving summary (e.g., "2 rotis + 1 katori dal + rice + sabzi").',
     },
     totals: {
       type: Type.OBJECT,
@@ -156,7 +165,32 @@ const analysisResponseSchema: Schema = {
       items: {
         type: Type.OBJECT,
         properties: {
-          name: { type: Type.STRING },
+          name: { type: Type.STRING, description: 'Clear English dish name.' },
+          hindiName: {
+            type: Type.STRING,
+            description: 'Hindi/regional name in Devanagari (e.g., "दाल तड़का"); empty string if non-Indian.',
+          },
+          regionalCuisine: {
+            type: Type.STRING,
+            description: 'E.g. North Indian, South Indian, Bihari, Bengali, Punjabi, Pan-Indian.',
+          },
+          cookingMethod: {
+            type: Type.STRING,
+            description: 'Visible preparation method (e.g. Tawa roasted, Deep-fried, Steamed, Simmered).',
+          },
+          keyIngredients: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Up to 5 visible/core ingredients.',
+          },
+          oilGheeSugarNote: {
+            type: Type.STRING,
+            description: 'Visible oil, ghee, butter, cream, or sugar syrup impact on calories/fat.',
+          },
+          nutritionReliable: {
+            type: Type.BOOLEAN,
+            description: 'False if dish/nutrition cannot be reliably estimated from the photo.',
+          },
           portionGrams: { type: Type.NUMBER },
           caloriesKcal: { type: Type.NUMBER },
           proteinGrams: { type: Type.NUMBER },
@@ -167,6 +201,12 @@ const analysisResponseSchema: Schema = {
         },
         required: [
           'name',
+          'hindiName',
+          'regionalCuisine',
+          'cookingMethod',
+          'keyIngredients',
+          'oilGheeSugarNote',
+          'nutritionReliable',
           'portionGrams',
           'caloriesKcal',
           'proteinGrams',
@@ -245,6 +285,7 @@ const analysisResponseSchema: Schema = {
     'confidence',
     'clarificationQuestion',
     'mealTitle',
+    'cuisineRegion',
     'estimatedServingSizeGrams',
     'servingDescription',
     'totals',
@@ -280,7 +321,15 @@ function roundInt(val: number): number {
   return Math.round(Number.isFinite(val) ? Math.max(0, val) : 0);
 }
 
-function parseModelJson(rawText: string): FoodAnalysisResult {
+interface RawGeminiItem extends DetectedFoodItem {
+  nutritionReliable?: boolean;
+}
+
+interface RawGeminiAnalysis extends Omit<FoodAnalysisResult, 'items'> {
+  items: RawGeminiItem[];
+}
+
+function parseModelJson(rawText: string): RawGeminiAnalysis {
   const cleaned = rawText
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
@@ -292,12 +341,12 @@ function parseModelJson(rawText: string): FoodAnalysisResult {
   }
 
   try {
-    return JSON.parse(cleaned) as FoodAnalysisResult;
+    return JSON.parse(cleaned) as RawGeminiAnalysis;
   } catch {
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
     if (firstBrace !== -1 && lastBrace > firstBrace) {
-      return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1)) as FoodAnalysisResult;
+      return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1)) as RawGeminiAnalysis;
     }
     throw new SyntaxError('Model output was not valid JSON.');
   }
@@ -315,7 +364,6 @@ function extractErrorDetails(error: unknown, fallbackMsg: string): ExtractedApiE
   let apiStatus: string | undefined;
   let message = errObj?.message || fallbackMsg;
 
-  // Attempt to parse JSON payload embedded in SDK error message
   try {
     const firstBrace = message.indexOf('{');
     if (firstBrace !== -1) {
@@ -354,14 +402,14 @@ function isRetryableFailure(error: unknown, extracted: ExtractedApiError): boole
   if (error instanceof SyntaxError) return true;
   if (error instanceof UpstreamApiError && error.statusCode >= 500) return true;
   const s = extracted.status;
-  if (s === 429 || s === 500 || s === 502 || s === 503 || s === 504) return true;
+  if (s === 500 || s === 502 || s === 503 || s === 504) return true;
   if (!s && /fetch|network|timeout|ECONNRESET|ETIMEDOUT|empty/i.test(extracted.message)) {
     return true;
   }
   return false;
 }
 
-function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
+export function sanitizeAndGroundResult(raw: RawGeminiAnalysis): FoodAnalysisResult {
   const status =
     raw.identificationStatus === 'needs_clarification' || raw.identificationStatus === 'not_food'
       ? raw.identificationStatus
@@ -372,17 +420,108 @@ function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
       ? raw.confidence
       : 'medium';
 
-  const items = Array.isArray(raw.items)
-    ? raw.items.map((item) => ({
-        name: String(item.name || 'Food item').trim(),
-        portionGrams: roundInt(item.portionGrams),
-        caloriesKcal: roundInt(item.caloriesKcal),
-        proteinGrams: round1(item.proteinGrams),
-        carbsGrams: round1(item.carbsGrams),
-        fatGrams: round1(item.fatGrams),
-        fiberGrams: round1(item.fiberGrams),
-        preparationNote: String(item.preparationNote || 'Standard preparation').trim(),
-      }))
+  const items: DetectedFoodItem[] = Array.isArray(raw.items)
+    ? raw.items.slice(0, 10).map((item) => {
+        const rawName = String(item.name || 'Food item').trim();
+        const rawHindi = String(item.hindiName || '').trim();
+        const refMatch =
+          findIndianFoodReference(rawName) ||
+          (rawHindi ? findIndianFoodReference(rawHindi) : null);
+
+        const portionGrams =
+          roundInt(item.portionGrams) > 0
+            ? roundInt(item.portionGrams)
+            : refMatch?.defaultPortionGrams || 0;
+
+        const keyIngredients = Array.isArray(item.keyIngredients)
+          ? item.keyIngredients.map((ing) => String(ing).trim()).filter(Boolean).slice(0, 6)
+          : [];
+
+        const geminiCalories = roundInt(item.caloriesKcal);
+        const geminiProtein = round1(item.proteinGrams);
+        const geminiCarbs = round1(item.carbsGrams);
+        const geminiFat = round1(item.fatGrams);
+        const geminiFiber = round1(item.fiberGrams);
+        const hasGeminiNutrition =
+          geminiCalories > 0 || geminiProtein > 0 || geminiCarbs > 0 || geminiFat > 0;
+
+        if (item.nutritionReliable === false || (!refMatch && !hasGeminiNutrition)) {
+          return {
+            name: rawName,
+            hindiName: rawHindi || undefined,
+            regionalCuisine: String(item.regionalCuisine || '').trim() || undefined,
+            cookingMethod: String(item.cookingMethod || '').trim() || 'Uncertain preparation',
+            keyIngredients,
+            oilGheeSugarNote:
+              String(item.oilGheeSugarNote || '').trim() ||
+              'Reliable nutrition data unavailable — edit dish name or add preparation details.',
+            nutritionSource: 'unavailable',
+            confidence: 'low',
+            portionGrams,
+            caloriesKcal: 0,
+            proteinGrams: 0,
+            carbsGrams: 0,
+            fatGrams: 0,
+            fiberGrams: 0,
+            preparationNote:
+              String(item.preparationNote || '').trim() || 'Uncertain — review before saving',
+          };
+        }
+
+        if (refMatch && portionGrams > 0) {
+          const refMacros = computeMacrosFromReference(refMatch, portionGrams);
+          const ratio =
+            refMacros.caloriesKcal > 0 && geminiCalories > 0
+              ? geminiCalories / refMacros.caloriesKcal
+              : 0;
+          // Preserve Gemini visual oil/ghee/cream nuance within ±35% of verified reference density;
+          // otherwise anchor directly to verified IFCT/USDA cooked baseline.
+          const withinVisualRange = ratio >= 0.65 && ratio <= 1.4;
+
+          return {
+            name: rawName,
+            hindiName: rawHindi || refMatch.hindiName,
+            regionalCuisine:
+              String(item.regionalCuisine || '').trim() || refMatch.regionalCuisine,
+            cookingMethod:
+              String(item.cookingMethod || '').trim() || refMatch.defaultCookingMethod,
+            keyIngredients:
+              keyIngredients.length > 0 ? keyIngredients : refMatch.defaultIngredients,
+            oilGheeSugarNote:
+              String(item.oilGheeSugarNote || '').trim() || refMatch.defaultOilGheeSugarNote,
+            nutritionSource: 'reference_db',
+            referenceFoodId: refMatch.id,
+            confidence,
+            portionGrams,
+            caloriesKcal: withinVisualRange ? geminiCalories : refMacros.caloriesKcal,
+            proteinGrams: withinVisualRange ? geminiProtein : refMacros.proteinGrams,
+            carbsGrams: withinVisualRange ? geminiCarbs : refMacros.carbsGrams,
+            fatGrams: withinVisualRange ? geminiFat : refMacros.fatGrams,
+            fiberGrams: withinVisualRange ? geminiFiber : refMacros.fiberGrams,
+            preparationNote:
+              String(item.preparationNote || '').trim() ||
+              `${refMatch.defaultCookingMethod} (${portionGrams} g)`,
+          };
+        }
+
+        return {
+          name: rawName,
+          hindiName: rawHindi || undefined,
+          regionalCuisine: String(item.regionalCuisine || '').trim() || undefined,
+          cookingMethod: String(item.cookingMethod || '').trim() || undefined,
+          keyIngredients,
+          oilGheeSugarNote: String(item.oilGheeSugarNote || '').trim() || undefined,
+          nutritionSource: 'gemini_estimate',
+          confidence,
+          portionGrams,
+          caloriesKcal: geminiCalories,
+          proteinGrams: geminiProtein,
+          carbsGrams: geminiCarbs,
+          fatGrams: geminiFat,
+          fiberGrams: geminiFiber,
+          preparationNote: String(item.preparationNote || 'Estimated preparation').trim(),
+        };
+      })
     : [];
 
   const sumItems = items.reduce(
@@ -397,27 +536,46 @@ function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
     { portionGrams: 0, caloriesKcal: 0, proteinGrams: 0, carbsGrams: 0, fatGrams: 0, fiberGrams: 0 }
   );
 
+  const hasUnavailableItem = items.some((item) => item.nutritionSource === 'unavailable');
+  const requiresUserConfirmation =
+    status === 'identified' && (confidence === 'low' || hasUnavailableItem);
+
   const rawServingGrams = roundInt(raw.estimatedServingSizeGrams);
   const rawCalories = roundInt(raw.totals?.caloriesKcal ?? 0);
+
+  // When items exist, keep total meal nutrition strictly consistent with the sum of items
+  const totals =
+    items.length > 0 && status === 'identified'
+      ? {
+          caloriesKcal: roundInt(sumItems.caloriesKcal),
+          proteinGrams: round1(sumItems.proteinGrams),
+          carbsGrams: round1(sumItems.carbsGrams),
+          fatGrams: round1(sumItems.fatGrams),
+          fiberGrams: round1(sumItems.fiberGrams),
+        }
+      : {
+          caloriesKcal: rawCalories,
+          proteinGrams: round1(raw.totals?.proteinGrams ?? 0),
+          carbsGrams: round1(raw.totals?.carbsGrams ?? 0),
+          fatGrams: round1(raw.totals?.fatGrams ?? 0),
+          fiberGrams: round1(raw.totals?.fiberGrams ?? 0),
+        };
 
   return {
     identificationStatus: status,
     confidence,
+    requiresUserConfirmation,
     clarificationQuestion: String(raw.clarificationQuestion || '').trim(),
     mealTitle: String(raw.mealTitle || (items[0]?.name ? items[0].name : 'Analyzed Meal')).trim(),
+    cuisineRegion: String(raw.cuisineRegion || '').trim() || undefined,
     estimatedServingSizeGrams:
-      rawServingGrams > 0 ? rawServingGrams : roundInt(sumItems.portionGrams),
+      items.length > 0 && sumItems.portionGrams > 0
+        ? roundInt(sumItems.portionGrams)
+        : rawServingGrams,
     servingDescription:
       String(raw.servingDescription || '').trim() ||
-      (sumItems.portionGrams > 0 ? `Approx. ${roundInt(sumItems.portionGrams)} g serving` : ''),
-    totals: {
-      caloriesKcal: rawCalories > 0 ? rawCalories : roundInt(sumItems.caloriesKcal),
-      proteinGrams:
-        round1(raw.totals?.proteinGrams ?? 0) || round1(sumItems.proteinGrams),
-      carbsGrams: round1(raw.totals?.carbsGrams ?? 0) || round1(sumItems.carbsGrams),
-      fatGrams: round1(raw.totals?.fatGrams ?? 0) || round1(sumItems.fatGrams),
-      fiberGrams: round1(raw.totals?.fiberGrams ?? 0) || round1(sumItems.fiberGrams),
-    },
+      (sumItems.portionGrams > 0 ? `Approx. ${roundInt(sumItems.portionGrams)} g total serving` : ''),
+    totals,
     items,
     dietSuggestions: {
       summary: String(raw.dietSuggestions?.summary || '').trim(),
@@ -450,7 +608,7 @@ function sanitizeResult(raw: FoodAnalysisResult): FoodAnalysisResult {
     },
     estimationDisclaimer:
       String(raw.estimationDisclaimer || '').trim() ||
-      'Values are visual estimates based on typical portion densities and visible ingredients.',
+      'Values are approximate AI & Indian nutrition reference estimates—not exact lab values. Hidden oil, ghee, butter, cream, or sugar can shift actual calories.',
   };
 }
 
@@ -469,7 +627,7 @@ function throwMappedUpstreamError(lastError: unknown, fallbackMessage: string): 
   }
   if (status === 503 || apiStatus === 'UNAVAILABLE') {
     throw new UpstreamApiError(
-      'The AI vision service is temporarily busy. Please try again in a few seconds.',
+      'The AI nutrition service is temporarily experiencing high demand. Please retry in a few seconds.',
       503
     );
   }
@@ -497,6 +655,27 @@ function throwMappedUpstreamError(lastError: unknown, fallbackMessage: string): 
 
   throw new UpstreamApiError(message, status && status >= 400 && status < 600 ? status : 502);
 }
+
+const INDIAN_VISION_SYSTEM_INSTRUCTION = `Expert Indian & global culinary nutrition vision analyst for RosoFood AI.
+Analyze the food image carefully and return compact structured JSON.
+
+INDIAN FOOD & REGIONAL RECOGNITION RULES:
+1. Recognize multiple items separately on a thali/plate (up to 10 items):
+   - Breads: Roti, chapati, phulka, plain/aloo/sattu paratha, tandoori/butter naan, poori, bhatura, litti.
+   - Lentils/Curries: Dal tadka, dal makhani, rajma, chole, kadhi pakora, sambar, rasam.
+   - Rice dishes: Steamed rice/chawal, jeera rice, veg pulao, veg/chicken biryani, moong dal khichdi.
+   - Paneer/Sabzi: Palak paneer, paneer butter masala, kadai/matar paneer, aloo gobi, bhindi, baingan bharta/chokha, sarson ka saag, mix veg.
+   - South Indian: Masala/plain/rava dosa, idli, medu vada, uttapam, poha, upma, pongal, coconut/tomato chutney.
+   - Regional & Snacks: Bihari litti chokha & sattu paratha, Bengali macher jhol/aloo posto/rasgulla/mishti doi, Punjabi sarson saag/chole bhature, Gujarati dhokla, samosa, pakora/bhajiya, vada pav, chaat.
+   - Indian Sweets & Drinks: Gulab jamun, jalebi, rasgulla, ladoo, kheer, masala chai, lassi, chaas, coconut water, Indian fruits.
+2. Provide English dish name ("name") and Devanagari Hindi name ("hindiName", e.g., "दाल तड़का") for Indian dishes. Also accept/understand Hindi/Hinglish clarification details from the user.
+3. For every visible item: estimate realistic cooked portionGrams, identify cookingMethod, up to 5 keyIngredients, and oilGheeSugarNote accounting for visible ghee/butter glaze, oil sheen, creamy cashew gravy, deep frying, or sugar syrup.
+4. Safety & Honesty:
+   - Never claim exact calories; note estimates in estimationDisclaimer.
+   - If the photo is blurry, covered, too dark, or an ambiguous curry/sweet where guessing risks inventing the wrong dish (and user hasn't clarified), set identificationStatus="needs_clarification", confidence="low", empty items, zero totals, and ask a clear clarificationQuestion.
+   - If a specific item's nutrition cannot be reliably determined, set nutritionReliable=false and zero macros for that item rather than inventing numbers.
+   - If there is no food in the image, set identificationStatus="not_food", confidence="low", zero totals, empty items.
+5. Keep dietSuggestions helpful for Indian/global eating habits (1-2 practical healthier swaps & protein options).`;
 
 export interface AnalyzeFoodInput {
   imageBase64: string;
@@ -527,32 +706,25 @@ export async function analyzeFoodImage(input: AnalyzeFoodInput): Promise<FoodAna
     },
   });
 
-  const systemInstruction = `Fast nutrition vision analyst for RosoFood AI. Return compact JSON nutrition facts for any food, fruit, South/North Indian dish, snack, or beverage.
-Rules:
-1. Identify up to 6 main visible food items with realistic portion grams, calories, protein, carbs, fat, and fiber, plus meal totals.
-2. Not food -> identificationStatus="not_food", confidence="low", zero totals, empty items, short clarificationQuestion.
-3. Too blurry/ambiguous (and no clarification) -> identificationStatus="needs_clarification", confidence="low", short clarificationQuestion.
-4. Keep summary (1 short sentence) and each dietSuggestions list concise (1 short option per list, <=12 words each).`;
-
   const promptText = userClarification
-    ? `Identify this food (${userClarification}) and return compact JSON nutrition + diet tips.`
-    : `Identify this food and return compact JSON nutrition facts + diet tips.`;
+    ? `Identify every food item on this plate using user note "${userClarification}" (may be English/Hindi/Hinglish). Estimate portion grams, ingredients, cooking method, visible oil/ghee/sugar, and nutrition JSON.`
+    : `Identify every food item on this plate (Indian or international), including regional dish names and Hindi names where applicable. Estimate portion grams, ingredients, cooking method, visible oil/ghee/sugar, and nutrition JSON.`;
 
   const modelCandidates = [
     {
-      model: 'gemini-3.1-flash-lite' as const,
-      thinkingConfig: undefined,
+      model: 'gemini-4-hydrogen',
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     },
     {
-      model: 'gemini-4-hydrogen' as const,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+      model: 'gemini-3.1-flash-lite',
+      thinkingConfig: undefined,
     },
   ];
   let lastError: unknown;
 
-  // Make one request on the fastest Flash model; only use fallback once if transient error occurs
   for (const candidate of modelCandidates) {
     try {
+
       const response = await withTimeout(
         ai.models.generateContent({
           model: candidate.model,
@@ -568,7 +740,7 @@ Rules:
             ],
           },
           config: {
-            systemInstruction,
+            systemInstruction: INDIAN_VISION_SYSTEM_INSTRUCTION,
             responseMimeType: 'application/json',
             responseSchema: analysisResponseSchema,
             ...(candidate.thinkingConfig ? { thinkingConfig: candidate.thinkingConfig } : {}),
@@ -591,7 +763,7 @@ Rules:
       }
 
       const parsed = parseModelJson(jsonText);
-      return sanitizeResult(parsed);
+      return sanitizeAndGroundResult(parsed);
     } catch (error: unknown) {
       lastError = error;
       const extracted = extractErrorDetails(error, 'Failed to analyze food image with Gemini Vision.');
@@ -635,24 +807,25 @@ export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult
     },
   });
 
-  const systemInstruction = `Fast nutrition analyst for RosoFood AI. Return compact JSON nutrition facts for any food, fruit, South/North Indian dish, or beverage. Split mixed meals into up to 6 items and provide meal totals. If not food, set identificationStatus="not_food" with zero totals. Keep summary (1 short sentence) and dietSuggestions concise (1 short option per list, <=12 words each).`;
+  const systemInstruction = `Indian & global culinary nutrition analyst for RosoFood AI. Understand English, Hindi (Devanagari/Hinglish), and regional Indian dish names. Break multi-item meals into individual items (up to 10), include hindiName, regionalCuisine, cookingMethod, keyIngredients, and oilGheeSugarNote. Account for cooking oil, ghee, butter, and sugar. If input is not food, set identificationStatus="not_food" with zero totals. Keep dietSuggestions concise.`;
 
-  const promptText = `Estimate compact JSON nutrition and diet tips for: "${trimmed}"`;
+  const promptText = `Estimate structured JSON nutrition and diet tips for: "${trimmed}"`;
 
   const modelCandidates = [
     {
-      model: 'gemini-3.1-flash-lite' as const,
-      thinkingConfig: undefined,
+      model: 'gemini-4-hydrogen',
+      thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     },
     {
-      model: 'gemini-4-hydrogen' as const,
-      thinkingConfig: { thinkingLevel: ThinkingLevel.MEDIUM },
+      model: 'gemini-3.1-flash-lite',
+      thinkingConfig: undefined,
     },
   ];
   let lastError: unknown;
 
   for (const candidate of modelCandidates) {
     try {
+
       const response = await withTimeout(
         ai.models.generateContent({
           model: candidate.model,
@@ -674,7 +847,7 @@ export async function analyzeFoodText(query: string): Promise<FoodAnalysisResult
       }
 
       const parsed = parseModelJson(jsonText);
-      return sanitizeResult(parsed);
+      return sanitizeAndGroundResult(parsed);
     } catch (error: unknown) {
       lastError = error;
       const extracted = extractErrorDetails(error, 'Failed to estimate nutrition for this food.');

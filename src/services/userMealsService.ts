@@ -121,6 +121,34 @@ function sanitizeAnalysisForFirestore(analysis: FoodAnalysisResult): FoodAnalysi
   const items = Array.isArray(analysis.items)
     ? analysis.items.slice(0, 30).map((item) => ({
         name: String(item.name || 'Food item').slice(0, 120),
+        ...(typeof item.hindiName === 'string' && item.hindiName.trim()
+          ? { hindiName: item.hindiName.trim().slice(0, 120) }
+          : {}),
+        ...(typeof item.regionalCuisine === 'string' && item.regionalCuisine.trim()
+          ? { regionalCuisine: item.regionalCuisine.trim().slice(0, 80) }
+          : {}),
+        ...(typeof item.cookingMethod === 'string' && item.cookingMethod.trim()
+          ? { cookingMethod: item.cookingMethod.trim().slice(0, 120) }
+          : {}),
+        ...(Array.isArray(item.keyIngredients) && item.keyIngredients.length > 0
+          ? {
+              keyIngredients: item.keyIngredients
+                .slice(0, 6)
+                .map((ing) => String(ing).trim().slice(0, 60))
+                .filter(Boolean),
+            }
+          : {}),
+        ...(typeof item.oilGheeSugarNote === 'string' && item.oilGheeSugarNote.trim()
+          ? { oilGheeSugarNote: item.oilGheeSugarNote.trim().slice(0, 200) }
+          : {}),
+        ...(item.nutritionSource === 'reference_db' ||
+        item.nutritionSource === 'gemini_estimate' ||
+        item.nutritionSource === 'unavailable'
+          ? { nutritionSource: item.nutritionSource }
+          : {}),
+        ...(typeof item.referenceFoodId === 'string' && item.referenceFoodId.trim()
+          ? { referenceFoodId: item.referenceFoodId.trim().slice(0, 60) }
+          : {}),
         portionGrams: Math.round(clampNumber(item.portionGrams, 0, 25000, 0)),
         caloriesKcal: Math.round(clampNumber(item.caloriesKcal, 0, 25000, 0)),
         proteinGrams: Math.round(clampNumber(item.proteinGrams, 0, 2000, 0) * 10) / 10,

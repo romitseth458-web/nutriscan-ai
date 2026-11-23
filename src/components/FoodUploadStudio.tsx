@@ -10,6 +10,7 @@ import {
   Image as ImageIcon,
   ArrowRight,
   PhoneCall,
+  RotateCcw,
 } from 'lucide-react';
 import type { FoodAnalysisResult } from '../types/nutrition';
 import {
@@ -24,6 +25,30 @@ import { PWAInstallButton } from './PWAInstallButton';
 const HERO_IMAGE_PATH = '/src/assets/images/hero_mediterranean_bowl_1795193578143.jpg';
 
 const SAMPLE_MEALS = [
+  {
+    id: 'paneer-thali',
+    label: 'Palak Paneer Thali',
+    fileName: 'palak-paneer-thali.jpg',
+    imageUrl: '/src/assets/images/sample_paneer_thali_1795193577934.jpg',
+  },
+  {
+    id: 'south-indian-tiffin',
+    label: 'South Indian Tiffin',
+    fileName: 'south-indian-tiffin.jpg',
+    imageUrl: '/src/assets/images/sample_south_indian_tiffin_1795454880781.jpg',
+  },
+  {
+    id: 'indian-snacks-chai',
+    label: 'Samosa, Dhokla & Chai',
+    fileName: 'indian-snacks-chai.jpg',
+    imageUrl: '/src/assets/images/sample_indian_snacks_chai_1795454881144.jpg',
+  },
+  {
+    id: 'fruit-platter',
+    label: 'Fresh Fruit Platter',
+    fileName: 'fresh-fruit-platter.jpg',
+    imageUrl: '/src/assets/images/sample_fruit_platter_1795194404141.jpg',
+  },
   {
     id: 'salmon-bowl',
     label: 'Salmon Quinoa Bowl',
@@ -42,18 +67,14 @@ const SAMPLE_MEALS = [
     fileName: 'teriyaki-chicken-bowl.jpg',
     imageUrl: '/src/assets/images/sample_chicken_stirfry_1795193578746.jpg',
   },
-  {
-    id: 'paneer-thali',
-    label: 'Palak Paneer Thali',
-    fileName: 'palak-paneer-thali.jpg',
-    imageUrl: '/src/assets/images/sample_paneer_thali_1795193577934.jpg',
-  },
-  {
-    id: 'fruit-platter',
-    label: 'Fresh Fruit Platter',
-    fileName: 'fresh-fruit-platter.jpg',
-    imageUrl: '/src/assets/images/sample_fruit_platter_1795194404141.jpg',
-  },
+];
+
+const QUICK_CLARIFICATION_OPTIONS = [
+  'Home-style (less oil)',
+  'With brushed ghee / butter',
+  'Restaurant creamy gravy',
+  'Roti + dal + dry sabzi',
+  'Deep-fried snack / mithai',
 ];
 
 interface FoodUploadStudioProps {
@@ -180,7 +201,7 @@ export function FoodUploadStudio({
           <div className="flex flex-col justify-between lg:col-span-6">
             <div>
               <p className="text-xs font-medium tracking-wide text-[#BE123C]">
-                Cooked With Love · Gemini Vision Nutrition
+                Cooked With Love · Indian &amp; Global Food Vision AI
               </p>
               <h1
                 className="mt-3 font-display font-bold tracking-tight text-[#241118]"
@@ -190,12 +211,13 @@ export function FoodUploadStudio({
                   textWrap: 'balance',
                 }}
               >
-                Nourish every meal you love with one photo.
+                Nourish every thali &amp; meal with one photo.
               </h1>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-[#644A52]">
-                Upload a photo of your plate or snap a dish shared together. RosoFood AI detects
-                visible ingredients, estimates portion weights in grams, breaks down calories and
-                macros, and suggests caring, healthier swaps.
+                Upload a photo of an Indian thali, tiffin, street snack, mithai, or home meal.
+                RosoFood AI recognizes multiple items on one plate in Hindi and English, accounts
+                for oil, ghee, and cooking methods, estimates grams using IFCT/USDA reference data,
+                and lets you edit before saving.
               </p>
 
               {/* Primary upload & camera action controls */}
@@ -244,16 +266,16 @@ export function FoodUploadStudio({
 
               <p className="mt-3 text-xs text-[#7E6069]">
                 Accepts JPG, JPEG, PNG, and WebP up to 20 MB · Automatically compressed to 1024px JPEG
-                for fast scanning
+                for fast mobile &amp; thali scanning
               </p>
             </div>
 
             {/* Quick sample meals row */}
             <div className="mt-8 border-t border-[#EEDCE0] pt-6">
               <p className="text-xs font-medium text-[#644A52]">
-                Try a sample meal or fruit platter to test live Gemini Vision analysis
+                Try a sample Indian thali, South Indian tiffin, snack platter, or fruit bowl
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-5">
+              <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
                 {SAMPLE_MEALS.map((sample) => {
                   const isLoadingThis = loadingSampleId === sample.id;
                   const isActive = selectedImage?.fileName === sample.fileName;
@@ -307,7 +329,7 @@ export function FoodUploadStudio({
                   {!heroImageFailed ? (
                     <img
                       src={HERO_IMAGE_PATH}
-                      alt="Mediterranean grilled salmon and quinoa bowl"
+                      alt="Fresh healthy food bowl ready for calorie analysis"
                       referrerPolicy="no-referrer"
                       onError={() => setHeroImageFailed(true)}
                       className="absolute inset-0 h-full w-full object-cover"
@@ -324,17 +346,16 @@ export function FoodUploadStudio({
                     <div className="flex flex-col gap-4 rounded-xl border border-white/20 bg-[#241118]/75 p-5 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="font-display text-base font-semibold">
-                          Drop a meal photo here
+                          Drop an Indian thali or meal photo here
                         </p>
                         <p className="mt-1 text-xs text-white/80">
-                          Or click Upload Food Image to inspect calories, protein, carbs, fat, and
-                          fiber.
+                          Detects multiple dishes, grams, oil/ghee notes, and Hindi &amp; English names.
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex min-h-[40px] items-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer"
+                        className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         Browse File
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -361,7 +382,7 @@ export function FoodUploadStudio({
                             Analyzing your food...
                           </p>
                           <p className="mt-1 text-xs text-white/75">
-                            Estimating serving size, calories, protein, carbs, fat, and fiber
+                            Identifying dishes, cooking oil/ghee, grams, and IFCT/USDA estimates
                           </p>
                         </div>
                       </div>
@@ -402,7 +423,7 @@ export function FoodUploadStudio({
                           type="button"
                           disabled={isAnalyzing}
                           onClick={() => fileInputRef.current?.click()}
-                          className="min-h-[40px] rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-medium text-[#241118] hover:bg-[#FDF3F5] disabled:opacity-50 whitespace-nowrap cursor-pointer"
+                          className="min-h-[44px] rounded-lg border border-[#E5CFD4] bg-white px-3.5 py-2 text-xs font-medium text-[#241118] hover:bg-[#FDF3F5] disabled:opacity-50 whitespace-nowrap cursor-pointer"
                         >
                           Replace
                         </button>
@@ -410,7 +431,7 @@ export function FoodUploadStudio({
                           type="button"
                           disabled={isAnalyzing}
                           onClick={() => void onAnalyze(selectedImage)}
-                          className="inline-flex min-h-[42px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap cursor-pointer"
+                          className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[#BE123C] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap cursor-pointer"
                         >
                           <Sparkles className="h-4 w-4" aria-hidden="true" />
                           {isAnalyzing ? 'Analyzing your food...' : 'Analyze Food'}
@@ -433,7 +454,7 @@ export function FoodUploadStudio({
                             <p className="text-sm font-semibold text-amber-950">
                               {analysisResult.identificationStatus === 'not_food'
                                 ? 'No food detected in this image'
-                                : 'Clarification needed for accurate macros'}
+                                : 'Please confirm this dish for accurate nutrition'}
                             </p>
                             <p className="mt-1 text-xs leading-relaxed text-amber-900">
                               {analysisResult.clarificationQuestion}
@@ -442,21 +463,41 @@ export function FoodUploadStudio({
                         </div>
 
                         {analysisResult.identificationStatus === 'needs_clarification' && (
-                          <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-                            <input
-                              type="text"
-                              value={clarificationText}
-                              onChange={(e) => setClarificationText(e.target.value)}
-                              placeholder="e.g., Chicken tikka masala with 1 cup basmati rice"
-                              className="min-h-[40px] flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
-                            />
-                            <button
-                              type="submit"
-                              disabled={!clarificationText.trim() || isAnalyzing}
-                              className="min-h-[40px] rounded-lg bg-[#241118] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3A1E28] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-                            >
-                              Re-analyze with Details
-                            </button>
+                          <div className="mt-3 space-y-2.5">
+                            <div className="flex flex-wrap gap-1.5">
+                              {QUICK_CLARIFICATION_OPTIONS.map((option) => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  disabled={isAnalyzing}
+                                  onClick={() =>
+                                    setClarificationText((prev) =>
+                                      prev.trim() ? `${prev.trim()}, ${option}` : option
+                                    )
+                                  }
+                                  className="min-h-[34px] rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-950 transition-colors hover:bg-amber-100 cursor-pointer"
+                                >
+                                  + {option}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                              <input
+                                type="text"
+                                value={clarificationText}
+                                onChange={(e) => setClarificationText(e.target.value)}
+                                placeholder="e.g., 2 रोटी, दाल तड़का, आलू गोभी (home-style)"
+                                className="min-h-[44px] flex-1 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
+                              />
+                              <button
+                                type="submit"
+                                disabled={!clarificationText.trim() || isAnalyzing}
+                                className="min-h-[44px] rounded-lg bg-[#241118] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3A1E28] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                              >
+                                Re-analyze with Details
+                              </button>
+                            </div>
                           </div>
                         )}
                       </form>
@@ -469,10 +510,24 @@ export function FoodUploadStudio({
             {activeError && (
               <div
                 role="alert"
-                className="mt-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
+                className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"
               >
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700" aria-hidden="true" />
-                <span className="flex-1">{activeError}</span>
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-700" aria-hidden="true" />
+                <span className="min-w-[180px] flex-1">{activeError}</span>
+                {selectedImage && !isAnalyzing && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocalError(null);
+                      onClearError();
+                      void onAnalyze(selectedImage, clarificationText.trim() || undefined);
+                    }}
+                    className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-xs font-semibold text-red-900 transition-colors hover:bg-red-100 cursor-pointer"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    Retry Scan
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {
@@ -480,7 +535,7 @@ export function FoodUploadStudio({
                     onClearError();
                   }}
                   aria-label="Dismiss error"
-                  className="text-red-700 hover:text-red-900 cursor-pointer"
+                  className="p-1.5 text-red-700 hover:text-red-900 cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -503,3 +558,4 @@ export function FoodUploadStudio({
     </section>
   );
 }
+

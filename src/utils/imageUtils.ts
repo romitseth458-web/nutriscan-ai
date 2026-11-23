@@ -10,8 +10,8 @@ export interface PreparedFoodImage {
 }
 
 const MAX_RAW_FILE_BYTES = 20 * 1024 * 1024; // 20 MB raw camera photo before client optimization
-const MAX_UPLOAD_DIMENSION = 1024; // Fast upload & Gemini Vision optimal size
-const UPLOAD_JPEG_QUALITY = 0.75;
+const MAX_UPLOAD_DIMENSION = 1024; // Fast upload & crisp multi-item thali detail for Gemini Vision
+const UPLOAD_JPEG_QUALITY = 0.78;
 const ACCEPTED_TYPES = new Set([
   'image/jpeg',
   'image/jpg',
