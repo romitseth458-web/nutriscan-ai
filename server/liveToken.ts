@@ -61,11 +61,11 @@ export async function createLiveEphemeralToken(params: {
   const expireTime = new Date(Date.now() + 30 * 60 * 1000).toISOString();
   const newSessionExpireTime = new Date(Date.now() + 2 * 60 * 1000).toISOString();
 
-  // Ephemeral auth tokens require apiVersion: 'v1alpha'
+  // Ephemeral auth tokens require httpOptions: { apiVersion: 'v1alpha' }
   const ai = new GoogleGenAI({
     apiKey,
-    apiVersion: 'v1alpha',
     httpOptions: {
+      apiVersion: 'v1alpha',
       headers: {
         'User-Agent': 'aistudio-build',
       },

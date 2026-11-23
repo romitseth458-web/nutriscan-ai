@@ -29,6 +29,21 @@ export interface GeminiLiveClientHandlers {
   onClosed: (reason?: string) => void;
 }
 
+export const LIVE_MODEL = 'gemini-3.8-live';
+export const LIVE_MODEL_RESOURCE = `models/${LIVE_MODEL}`;
+
+// Frontend WebSocket Live client targets the exact same model and v1alpha API version
+// as server/liveToken.ts (BidiGenerateContentConstrained for ephemeral tokens).
+export const LIVE_WS_CLIENT_CONFIG = {
+  model: LIVE_MODEL,
+  modelResource: LIVE_MODEL_RESOURCE,
+  httpOptions: {
+    apiVersion: 'v1alpha' as const,
+  },
+} as const;
+
+const DEFAULT_EPHEMERAL_WS_BASE_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${LIVE_WS_CLIENT_CONFIG.httpOptions.apiVersion}.GenerativeService.BidiGenerateContentConstrained`;
+
 const TOKEN_FETCH_TIMEOUT_MS = 12_000;
 const WS_CONNECT_TIMEOUT_MS = 15_000;
 
@@ -212,13 +227,21 @@ export class GeminiLiveBrowserClient {
     this.closedManually = false;
     this.setupReady = false;
 
-    const wsUrl = `${tokenPayload.wsBaseUrl}?access_token=${encodeURIComponent(tokenPayload.token)}`;
+    const apiVersion = tokenPayload.apiVersion || LIVE_WS_CLIENT_CONFIG.httpOptions.apiVersion;
+    const modelResource = tokenPayload.model || LIVE_WS_CLIENT_CONFIG.modelResource;
+    const wsBaseUrl =
+      tokenPayload.wsBaseUrl ||
+      (apiVersion === LIVE_WS_CLIENT_CONFIG.httpOptions.apiVersion
+        ? DEFAULT_EPHEMERAL_WS_BASE_URL
+        : `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.${apiVersion}.GenerativeService.BidiGenerateContentConstrained`);
+    const wsUrl = `${wsBaseUrl}?access_token=${encodeURIComponent(tokenPayload.token)}`;
 
     if (import.meta.env.DEV) {
       console.info('[RosoFood Live] Opening Gemini Live WebSocket:', {
-        apiVersion: tokenPayload.apiVersion,
-        model: tokenPayload.model,
-        endpoint: tokenPayload.wsBaseUrl,
+        httpOptions: LIVE_WS_CLIENT_CONFIG.httpOptions,
+        apiVersion,
+        model: modelResource,
+        endpoint: wsBaseUrl,
       });
     }
 
@@ -246,7 +269,7 @@ export class GeminiLiveBrowserClient {
 
       // When liveConnectConstraints locks config on the ephemeral token,
       // send only the matching model in the setup frame.
-      ws.send(JSON.stringify({ setup: { model: tokenPayload.model } }));
+      ws.send(JSON.stringify({ setup: { model: modelResource } }));
     };
 
     ws.onmessage = (event) => {
