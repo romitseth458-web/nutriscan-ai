@@ -10,6 +10,7 @@ import {
   ValidationError,
 } from './server/analyzeFood.ts';
 import { setupLiveDietAssistantWebSocket } from './server/liveDietAssistant.ts';
+import { createLiveEphemeralToken, LiveTokenError } from './server/liveToken.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,34 @@ app.use(express.json({ limit: '12mb' }));
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'rosofood-ai' });
+});
+
+app.post('/api/live-token', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  try {
+    const authHeader = req.headers.authorization;
+    const bearerToken =
+      typeof authHeader === 'string' && authHeader.toLowerCase().startsWith('bearer ')
+        ? authHeader.slice(7).trim()
+        : '';
+    const bodyToken = typeof req.body?.idToken === 'string' ? req.body.idToken.trim() : '';
+    const idToken = bearerToken || bodyToken;
+
+    const result = await createLiveEphemeralToken({
+      idToken,
+      context: req.body?.context,
+    });
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof LiveTokenError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : 'Unexpected server error.';
+    res.status(500).json({ error: message });
+  }
 });
 
 app.post('/api/analyze', async (req, res) => {

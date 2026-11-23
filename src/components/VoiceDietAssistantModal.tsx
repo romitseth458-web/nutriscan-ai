@@ -33,6 +33,10 @@ import {
   MicPcmStreamer,
   Pcm24kAudioPlayer,
 } from '../utils/pcmAudio';
+import {
+  fetchLiveEphemeralToken,
+  GeminiLiveBrowserClient,
+} from '../utils/geminiLiveClient';
 
 const ASSISTANT_AVATAR_PATH = '/src/assets/images/diet_assistant_avatar_1795259213671.jpg';
 
@@ -184,8 +188,8 @@ export function VoiceDietAssistantModal({
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileNotice, setProfileNotice] = useState<string | null>(null);
 
-  // Refs for real-time audio / WebSocket closures
-  const wsRef = useRef<WebSocket | null>(null);
+  // Refs for real-time audio / Gemini Live WebSocket closures
+  const liveClientRef = useRef<GeminiLiveBrowserClient | null>(null);
   const inputCtxRef = useRef<AudioContext | null>(null);
   const outputCtxRef = useRef<AudioContext | null>(null);
   const micStreamerRef = useRef<MicPcmStreamer | null>(null);
@@ -194,6 +198,7 @@ export function VoiceDietAssistantModal({
   const isMutedRef = useRef(false);
   const statusRef = useRef<CallStatus>('idle');
   const manualCloseRef = useRef(false);
+  const sessionGenerationRef = useRef(0);
   const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
   const assistantContext = useMemo(
@@ -301,6 +306,7 @@ export function VoiceDietAssistantModal({
   }, [isOpen, isAssistantSpeaking]);
 
   const teardownSession = useCallback(() => {
+    sessionGenerationRef.current += 1;
     manualCloseRef.current = true;
     micLevelRef.current = 0;
 
@@ -314,13 +320,9 @@ export function VoiceDietAssistantModal({
       playerRef.current = null;
     }
 
-    if (wsRef.current) {
-      try {
-        wsRef.current.close();
-      } catch {
-        // Ignore close error
-      }
-      wsRef.current = null;
+    if (liveClientRef.current) {
+      liveClientRef.current.close();
+      liveClientRef.current = null;
     }
 
     if (inputCtxRef.current) {
@@ -339,6 +341,7 @@ export function VoiceDietAssistantModal({
 
   const startCall = useCallback(async () => {
     teardownSession();
+    const generation = sessionGenerationRef.current;
     manualCloseRef.current = false;
     setErrorMessage(null);
     setIsInterruptedBadge(false);
@@ -347,6 +350,8 @@ export function VoiceDietAssistantModal({
     setCallSeconds(0);
     setStatus('connecting');
     setTranscripts([]);
+
+    const isStale = () => manualCloseRef.current || sessionGenerationRef.current !== generation;
 
     // 1. Initialize & resume Web Audio contexts inside interaction flow
     let inputCtx: AudioContext;
@@ -363,15 +368,14 @@ export function VoiceDietAssistantModal({
       if (outputCtx.state === 'suspended') {
         await outputCtx.resume().catch(() => {});
       }
-      if (outputCtx.state === 'suspended') {
-        setSpeakerBlocked(true);
-      }
     } catch {
       setErrorMessage('Audio system could not be initialized on this browser.');
       setStatus('error');
       teardownSession();
       return;
     }
+
+    if (isStale()) return;
 
     const player = new Pcm24kAudioPlayer(outputCtx, (speaking) => {
       setIsAssistantSpeaking(speaking);
@@ -385,34 +389,43 @@ export function VoiceDietAssistantModal({
     });
     playerRef.current = player;
 
-    // 2. Get Firebase Auth ID token so server verifies the caller securely
+    // 2. Get Firebase Auth ID token so backend verifies the caller securely
     let idToken = '';
     try {
       idToken = await user.getIdToken();
     } catch {
+      if (isStale()) return;
       setErrorMessage('Could not verify your login session. Please refresh and sign in again.');
       setStatus('error');
       teardownSession();
       return;
     }
 
-    // 3. Request microphone permission & prepare PCM streamer
+    if (isStale()) return;
+
+    // 3. Request microphone permission & prepare 16kHz PCM streamer before minting single-use token
     const micStreamer = new MicPcmStreamer(inputCtx);
     micStreamerRef.current = micStreamer;
 
     try {
       await micStreamer.start(
         (base64Audio) => {
-          const ws = wsRef.current;
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'audio', audio: base64Audio }));
-          }
+          liveClientRef.current?.sendAudioPcm16k(base64Audio);
         },
         (level) => {
           micLevelRef.current = level;
         }
       );
+      if (outputCtx.state === 'suspended') {
+        await outputCtx.resume().catch(() => {});
+      }
+      if (outputCtx.state === 'suspended') {
+        setSpeakerBlocked(true);
+      } else {
+        setSpeakerBlocked(false);
+      }
     } catch (micErr) {
+      if (isStale()) return;
       const rawName = micErr instanceof DOMException ? micErr.name : '';
       let msg =
         micErr instanceof Error
@@ -433,84 +446,74 @@ export function VoiceDietAssistantModal({
       return;
     }
 
-    // 4. Open WebSocket to backend Gemini Live bridge
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${wsProtocol}//${window.location.host}/api/live-assistant`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    if (isStale()) return;
 
-    const connectTimeoutId = window.setTimeout(() => {
-      if (ws.readyState === WebSocket.CONNECTING) {
-        setErrorMessage('Voice server took too long to respond. Please retry.');
-        setStatus('error');
-        teardownSession();
+    // 4. Request short-lived constrained ephemeral token from backend (/api/live-token)
+    let tokenPayload;
+    try {
+      tokenPayload = await fetchLiveEphemeralToken(idToken, contextRef.current);
+    } catch (tokenErr) {
+      if (isStale()) return;
+      const msg =
+        tokenErr instanceof Error
+          ? tokenErr.message
+          : 'Unable to obtain a secure Gemini Live voice token from the server.';
+      if (import.meta.env.DEV) {
+        console.error('[RosoFood Live] Failed to fetch ephemeral token:', msg, tokenErr);
       }
-    }, 15_000);
+      setErrorMessage(msg);
+      setStatus('error');
+      teardownSession();
+      return;
+    }
 
-    ws.onopen = () => {
-      window.clearTimeout(connectTimeoutId);
-      ws.send(
-        JSON.stringify({
-          type: 'init',
-          idToken,
-          context: contextRef.current,
-          autoGreet: true,
-        })
-      );
-    };
+    if (isStale()) return;
 
-    ws.onmessage = (event) => {
-      let msg: Record<string, unknown>;
-      try {
-        msg = JSON.parse(String(event.data)) as Record<string, unknown>;
-      } catch {
-        return;
-      }
-
-      if (msg.type === 'connected') {
+    // 5. Connect browser directly to Gemini Live BidiGenerateContentConstrained WebSocket
+    const liveClient = new GeminiLiveBrowserClient(contextRef.current, {
+      onConnected: () => {
+        if (isStale()) return;
         setStatus(isMutedRef.current ? 'muted' : 'listening');
-        return;
-      }
-
-      if (msg.type === 'audio' && typeof msg.audio === 'string') {
+      },
+      onAudioOutput: (base64Pcm24k) => {
+        if (isStale()) return;
         setIsInterruptedBadge(false);
         if (outputCtxRef.current?.state === 'suspended') {
-          void outputCtxRef.current.resume().catch(() => setSpeakerBlocked(true));
+          void outputCtxRef.current
+            .resume()
+            .then(() => {
+              if (outputCtxRef.current?.state === 'running') {
+                setSpeakerBlocked(false);
+              }
+            })
+            .catch(() => setSpeakerBlocked(true));
         }
-        player.enqueueBase64Pcm24k(msg.audio);
-        return;
-      }
-
-      if (msg.type === 'interrupted') {
+        player.enqueueBase64Pcm24k(base64Pcm24k);
+      },
+      onInputTranscript: (text) => {
+        if (isStale()) return;
+        setTranscripts((prev) => appendTranscriptChunk(prev, 'user', text));
+      },
+      onOutputTranscript: (text) => {
+        if (isStale()) return;
+        setTranscripts((prev) => appendTranscriptChunk(prev, 'assistant', text));
+      },
+      onInterrupted: () => {
+        if (isStale()) return;
         player.stopAll();
         setIsInterruptedBadge(true);
         setTranscripts((prev) => finalizeOpenTranscripts(prev));
         window.setTimeout(() => setIsInterruptedBadge(false), 1600);
-        return;
-      }
-
-      if (msg.type === 'turn_complete') {
+      },
+      onTurnComplete: () => {
+        if (isStale()) return;
         setTranscripts((prev) => finalizeOpenTranscripts(prev));
-        return;
-      }
-
-      if (msg.type === 'input_transcript' && typeof msg.text === 'string') {
-        const text = msg.text;
-        setTranscripts((prev) => appendTranscriptChunk(prev, 'user', text));
-        return;
-      }
-
-      if (msg.type === 'output_transcript' && typeof msg.text === 'string') {
-        const text = msg.text;
-        setTranscripts((prev) => appendTranscriptChunk(prev, 'assistant', text));
-        return;
-      }
-
-      if (msg.type === 'tool_profile_update' && msg.dietProfile) {
-        const incomingProfile = msg.dietProfile as UserDietProfile;
+      },
+      onToolProfileUpdate: (partialProfile) => {
+        if (isStale()) return;
         const mergedProfile: UserDietProfile = {
           ...(contextRef.current.dietProfile || {}),
-          ...incomingProfile,
+          ...partialProfile,
         };
         void onSaveDietProfile(mergedProfile)
           .then(() => {
@@ -527,11 +530,9 @@ export function VoiceDietAssistantModal({
           .catch(() => {
             // Unverified email toast handled by App
           });
-        return;
-      }
-
-      if (msg.type === 'tool_goals_update' && msg.dailyGoals) {
-        const nextGoals = msg.dailyGoals as DailyNutritionGoals;
+      },
+      onToolGoalsUpdate: (nextGoals) => {
+        if (isStale()) return;
         void onUpdateGoals(nextGoals).then(() => {
           setTranscripts((prev) => [
             ...finalizeOpenTranscripts(prev),
@@ -543,49 +544,23 @@ export function VoiceDietAssistantModal({
             },
           ]);
         });
-        return;
-      }
-
-      if (msg.type === 'error') {
-        const message =
-          typeof msg.message === 'string'
-            ? msg.message
-            : 'Voice assistant encountered an error.';
+      },
+      onError: (message) => {
+        if (isStale()) return;
         setErrorMessage(message);
         setStatus('error');
         teardownSession();
-        return;
-      }
-
-      if (msg.type === 'closed' && !manualCloseRef.current) {
-        setStatus('ended');
-        teardownSession();
-      }
-    };
-
-    ws.onerror = () => {
-      window.clearTimeout(connectTimeoutId);
-      if (!manualCloseRef.current) {
-        setErrorMessage('Lost connection to the voice assistant server. Please check your network and retry.');
-        setStatus('error');
-        teardownSession();
-      }
-    };
-
-    ws.onclose = (ev) => {
-      window.clearTimeout(connectTimeoutId);
-      if (!manualCloseRef.current && statusRef.current !== 'error') {
-        if (ev.code !== 1000 && ev.code !== 1005) {
-          setErrorMessage(
-            ev.reason || 'Voice call disconnected unexpectedly. Tap Call Again to reconnect.'
-          );
-          setStatus('error');
-        } else {
+      },
+      onClosed: () => {
+        if (!isStale() && statusRef.current !== 'error') {
           setStatus('ended');
+          teardownSession();
         }
-        teardownSession();
-      }
-    };
+      },
+    });
+
+    liveClientRef.current = liveClient;
+    liveClient.connect(tokenPayload);
   }, [onSaveDietProfile, onUpdateGoals, teardownSession, user]);
 
   // Start call automatically when modal opens; clean up on close/unmount
@@ -633,18 +608,16 @@ export function VoiceDietAssistantModal({
 
   function handleChangeLanguage(nextLang: AssistantLanguagePreference) {
     setLanguagePref(nextLang);
-    const ws = wsRef.current;
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (liveClientRef.current?.isReady()) {
       const updatedContext = { ...contextRef.current, preferredLanguage: nextLang };
-      ws.send(JSON.stringify({ type: 'context_update', context: updatedContext }));
+      liveClientRef.current.updateContext(updatedContext);
     }
   }
 
   function handleSendPrompt(promptText: string) {
     const clean = promptText.trim();
     if (!clean) return;
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
+    if (!liveClientRef.current?.isReady()) {
       return;
     }
     playerRef.current?.stopAll();
@@ -657,7 +630,7 @@ export function VoiceDietAssistantModal({
         finalized: true,
       },
     ]);
-    ws.send(JSON.stringify({ type: 'text', text: clean }));
+    liveClientRef.current.sendText(clean);
   }
 
   async function handleSaveInlineProfile(e: React.FormEvent) {
@@ -698,8 +671,7 @@ export function VoiceDietAssistantModal({
       await onSaveDietProfile(nextProfile);
       setProfileNotice('Saved! Roso now uses your updated details.');
       onShowToast?.('Diet profile updated');
-      const ws = wsRef.current;
-      if (ws && ws.readyState === WebSocket.OPEN) {
+      if (liveClientRef.current?.isReady()) {
         const freshContext = buildDietAssistantContext({
           displayName,
           dailyGoals,
@@ -708,7 +680,7 @@ export function VoiceDietAssistantModal({
           selectedDateKey,
           preferredLanguage: languagePref,
         });
-        ws.send(JSON.stringify({ type: 'context_update', context: freshContext }));
+        liveClientRef.current.updateContext(freshContext);
       }
     } catch (err) {
       setProfileNotice(

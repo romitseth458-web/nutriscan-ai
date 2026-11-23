@@ -105,10 +105,6 @@ export class MicPcmStreamer {
       );
     }
 
-    if (this.audioCtx.state === 'suspended') {
-      await this.audioCtx.resume();
-    }
-
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         channelCount: 1,
@@ -117,6 +113,10 @@ export class MicPcmStreamer {
         autoGainControl: true,
       },
     });
+
+    if (this.audioCtx.state === 'suspended') {
+      await this.audioCtx.resume().catch(() => {});
+    }
 
     if (this.stopped) {
       this.stopTracks();
