@@ -22,6 +22,7 @@ import { DietSuggestionsSection } from './components/DietSuggestionsSection';
 import { DailyTrackerSection } from './components/DailyTrackerSection';
 import { MealPlannerSection } from './components/MealPlannerSection';
 import { WaterTrackerSection } from './components/WaterTrackerSection';
+import { WeeklyReportSection } from './components/WeeklyReportSection';
 import { FaqSection } from './components/FaqSection';
 import { GoalCalculatorModal } from './components/GoalCalculatorModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -45,6 +46,11 @@ import {
   deleteWaterLogForUser,
   subscribeToUserWaterLogs,
 } from './services/waterTrackerService';
+import {
+  deleteWeeklyReportForUser,
+  saveWeeklyReportForUser,
+  subscribeToUserWeeklyReports,
+} from './services/weeklyReportService';
 import type {
   DailyNutritionGoals,
   FoodAnalysisResult,
@@ -53,6 +59,7 @@ import type {
   TrackedMealEntry,
   UserDietProfile,
   WaterLogEntry,
+  WeeklyReportRecord,
 } from './types/nutrition';
 import type { PreparedFoodImage } from './utils/imageUtils';
 import {
@@ -89,6 +96,7 @@ export default function App() {
   const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
   const [savedMealPlans, setSavedMealPlans] = useState<IndianMealPlan[]>([]);
   const [waterLogs, setWaterLogs] = useState<WaterLogEntry[]>([]);
+  const [savedWeeklyReports, setSavedWeeklyReports] = useState<WeeklyReportRecord[]>([]);
   const [waterGoalMl, setWaterGoalMl] = useState<number>(DEFAULT_WATER_GOAL_ML);
   const [todayDateKey, setTodayDateKey] = useState<string>(() => getLocalDateKey());
   const [dailyGoals, setDailyGoals] = useState<DailyNutritionGoals>(DEFAULT_DAILY_GOALS);
@@ -137,6 +145,7 @@ export default function App() {
       setTrackedMeals([]);
       setSavedMealPlans([]);
       setWaterLogs([]);
+      setSavedWeeklyReports([]);
       setSelectedImage(null);
       setActivePreviewUrl(null);
       setAnalysisResult(null);
@@ -150,6 +159,7 @@ export default function App() {
       setTrackedMeals([]);
       setSavedMealPlans([]);
       setWaterLogs([]);
+      setSavedWeeklyReports([]);
       return;
     }
 
@@ -162,11 +172,15 @@ export default function App() {
     const unsubscribeWater = subscribeToUserWaterLogs(user.uid, (logs) => {
       setWaterLogs(logs);
     });
+    const unsubscribeWeeklyReports = subscribeToUserWeeklyReports(user.uid, (reports) => {
+      setSavedWeeklyReports(reports);
+    });
 
     return () => {
       unsubscribeMeals();
       unsubscribePlans();
       unsubscribeWater();
+      unsubscribeWeeklyReports();
     };
   }, [authReady, user, user?.uid, user?.emailVerified]);
 
@@ -407,6 +421,23 @@ export default function App() {
     if (!user || !user.emailVerified) return;
     await deleteWaterLogForUser(user.uid, entryId);
     showToast('Water entry removed');
+  }
+
+  async function handleSaveWeeklyReport(
+    report: Omit<WeeklyReportRecord, 'id' | 'updatedAtIso'> & { id?: string }
+  ): Promise<string> {
+    if (!user) return report.id || `week-${report.endDateKey}`;
+    if (!user.emailVerified) {
+      showToast('Verify your email address first to save weekly reports in Firestore.');
+      setIsProfileOpen(true);
+      return report.id || `week-${report.endDateKey}`;
+    }
+    return saveWeeklyReportForUser(user.uid, report);
+  }
+
+  async function handleDeleteWeeklyReport(reportId: string) {
+    if (!user || !user.emailVerified) return;
+    await deleteWeeklyReportForUser(user.uid, reportId);
   }
 
   function handleInspectEntry(entry: TrackedMealEntry) {
@@ -663,6 +694,20 @@ export default function App() {
             onDeleteWaterEntry={handleDeleteWaterEntry}
           />
 
+          <WeeklyReportSection
+            meals={trackedMeals}
+            waterLogs={waterLogs}
+            dailyGoals={dailyGoals}
+            waterGoalMl={waterGoalMl}
+            todayDateKey={todayDateKey}
+            dietProfile={userProfile?.dietProfile}
+            savedReports={savedWeeklyReports}
+            isEmailVerified={Boolean(user.emailVerified)}
+            onSaveWeeklyReport={handleSaveWeeklyReport}
+            onDeleteWeeklyReport={handleDeleteWeeklyReport}
+            onShowToast={showToast}
+          />
+
           <FaqSection />
         </main>
 
@@ -697,6 +742,9 @@ export default function App() {
                 </a>
                 <a href="#water-tracker" className="hover:text-[#241118]">
                   Water Tracker
+                </a>
+                <a href="#weekly-report" className="hover:text-[#241118]">
+                  Weekly Report
                 </a>
                 <a href="#results" className="hover:text-[#241118]">
                   Nutrition Dashboard

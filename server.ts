@@ -16,6 +16,7 @@ import {
   regenerateSingleMealSlot,
   replaceMealFoodItem,
 } from './server/mealPlanner.ts';
+import { generateWeeklyNutritionReport } from './server/weeklyReport.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -150,6 +151,25 @@ app.post('/api/meal-plan', async (req, res) => {
     }
 
     res.status(400).json({ error: `Unsupported meal-plan action: ${action}` });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    if (error instanceof UpstreamApiError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+
+    const message = error instanceof Error ? error.message : 'Unexpected server error.';
+    res.status(500).json({ error: message });
+  }
+});
+
+app.post('/api/weekly-report', async (req, res) => {
+  try {
+    const report = await generateWeeklyNutritionReport(req.body);
+    res.status(200).json(report);
   } catch (error) {
     if (error instanceof ValidationError) {
       res.status(error.statusCode).json({ error: error.message });

@@ -74,11 +74,11 @@ service cloud.firestore {
       return totals is map
         && totals.keys().hasAll(['caloriesKcal', 'proteinGrams', 'carbsGrams', 'fatGrams', 'fiberGrams'])
         && totals.keys().hasOnly(['caloriesKcal', 'proteinGrams', 'carbsGrams', 'fatGrams', 'fiberGrams'])
-        && (totals.caloriesKcal is int || totals.caloriesKcal is float) && totals.caloriesKcal >= 0 && totals.caloriesKcal <= 25000
-        && (totals.proteinGrams is int || totals.proteinGrams is float) && totals.proteinGrams >= 0 && totals.proteinGrams <= 2000
-        && (totals.carbsGrams is int || totals.carbsGrams is float) && totals.carbsGrams >= 0 && totals.carbsGrams <= 5000
-        && (totals.fatGrams is int || totals.fatGrams is float) && totals.fatGrams >= 0 && totals.fatGrams <= 2000
-        && (totals.fiberGrams is int || totals.fiberGrams is float) && totals.fiberGrams >= 0 && totals.fiberGrams <= 1000;
+        && (totals.caloriesKcal is int || totals.caloriesKcal is float) && totals.caloriesKcal >= 0 && totals.caloriesKcal <= 150000
+        && (totals.proteinGrams is int || totals.proteinGrams is float) && totals.proteinGrams >= 0 && totals.proteinGrams <= 10000
+        && (totals.carbsGrams is int || totals.carbsGrams is float) && totals.carbsGrams >= 0 && totals.carbsGrams <= 25000
+        && (totals.fatGrams is int || totals.fatGrams is float) && totals.fatGrams >= 0 && totals.fatGrams <= 10000
+        && (totals.fiberGrams is int || totals.fiberGrams is float) && totals.fiberGrams >= 0 && totals.fiberGrams <= 5000;
     }
 
     function isValidAnalysis(analysis) {
@@ -280,6 +280,76 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    function isValidWeeklyReport(data, userId, reportId) {
+      return data.keys().hasAll([
+          'id',
+          'userId',
+          'startDateKey',
+          'endDateKey',
+          'loggedMealDaysCount',
+          'totalMealsLogged',
+          'dailyAverageTotals',
+          'weeklyTotals',
+          'dailyWaterGoalMl',
+          'averageWaterMl',
+          'totalWaterMl',
+          'dailyGoalsSnapshot',
+          'days',
+          'aiSummary',
+          'highlights',
+          'suggestions',
+          'estimationDisclaimer',
+          'createdAt',
+          'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id',
+          'userId',
+          'startDateKey',
+          'endDateKey',
+          'loggedMealDaysCount',
+          'totalMealsLogged',
+          'dailyAverageTotals',
+          'weeklyTotals',
+          'dailyWaterGoalMl',
+          'averageWaterMl',
+          'totalWaterMl',
+          'dailyGoalsSnapshot',
+          'days',
+          'aiSummary',
+          'highlights',
+          'suggestions',
+          'estimationDisclaimer',
+          'createdAt',
+          'updatedAt'
+        ])
+        && isValidId(data.id)
+        && data.id == reportId
+        && isValidId(data.userId)
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.startDateKey is string && data.startDateKey.size() == 10 && data.startDateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.endDateKey is string && data.endDateKey.size() == 10 && data.endDateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && (data.loggedMealDaysCount is int || data.loggedMealDaysCount is float) && data.loggedMealDaysCount >= 0 && data.loggedMealDaysCount <= 7
+        && (data.totalMealsLogged is int || data.totalMealsLogged is float) && data.totalMealsLogged >= 0 && data.totalMealsLogged <= 500
+        && isValidMacroTotals(data.dailyAverageTotals)
+        && isValidMacroTotals(data.weeklyTotals)
+        && (data.dailyWaterGoalMl is int || data.dailyWaterGoalMl is float) && data.dailyWaterGoalMl >= 500 && data.dailyWaterGoalMl <= 10000
+        && (data.averageWaterMl is int || data.averageWaterMl is float) && data.averageWaterMl >= 0 && data.averageWaterMl <= 20000
+        && (data.totalWaterMl is int || data.totalWaterMl is float) && data.totalWaterMl >= 0 && data.totalWaterMl <= 140000
+        && isValidDailyGoals(data.dailyGoalsSnapshot)
+        && data.days is list && data.days.size() == 7
+        && data.days[0] is map
+        && data.aiSummary is string && data.aiSummary.size() >= 1 && data.aiSummary.size() <= 1000
+        && data.highlights is list && data.highlights.size() <= 5
+        && (data.highlights.size() == 0 || data.highlights[0] is string)
+        && data.suggestions is list && data.suggestions.size() <= 5
+        && (data.suggestions.size() == 0 || data.suggestions[0] is string)
+        && data.estimationDisclaimer is string && data.estimationDisclaimer.size() <= 500
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
     // Private User Profile & Goals (PII isolated per userId)
     match /users/{userId} {
       allow get: if isValidId(userId) && isOwner(userId);
@@ -402,6 +472,51 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/users/$(userId))
           && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
         allow delete: if isValidId(userId) && isValidId(entryId) && isOwner(userId) && isVerified();
+      }
+
+      // Private AI Weekly Nutrition Reports subcollection
+      match /weeklyReports/{reportId} {
+        allow get: if isValidId(userId) && isValidId(reportId) && isOwner(userId);
+        allow list: if isOwner(userId) && existing().userId == request.auth.uid;
+        allow create: if isValidId(userId)
+          && isValidId(reportId)
+          && isOwner(userId)
+          && isVerified()
+          && isValidWeeklyReport(incoming(), userId, reportId)
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow update: if isValidId(userId)
+          && isValidId(reportId)
+          && isOwner(userId)
+          && isVerified()
+          && isValidWeeklyReport(incoming(), userId, reportId)
+          && incoming().id == existing().id
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'startDateKey',
+            'endDateKey',
+            'loggedMealDaysCount',
+            'totalMealsLogged',
+            'dailyAverageTotals',
+            'weeklyTotals',
+            'dailyWaterGoalMl',
+            'averageWaterMl',
+            'totalWaterMl',
+            'dailyGoalsSnapshot',
+            'days',
+            'aiSummary',
+            'highlights',
+            'suggestions',
+            'estimationDisclaimer',
+            'updatedAt'
+          ])
+          && exists(/databases/$(database)/documents/users/$(userId))
+          && get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+        allow delete: if isValidId(userId) && isValidId(reportId) && isOwner(userId) && isVerified();
       }
     }
   }

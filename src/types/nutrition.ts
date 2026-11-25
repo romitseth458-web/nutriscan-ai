@@ -187,3 +187,62 @@ export interface WaterLogEntry {
   amountMl: number;
 }
 
+// ==================== AI WEEKLY NUTRITION REPORT TYPES ====================
+
+export type WeeklyTrendMetric =
+  | 'calories'
+  | 'protein'
+  | 'carbs'
+  | 'fat'
+  | 'fiber'
+  | 'water';
+
+export interface WeeklyDaySnapshot extends MacroTotals {
+  dateKey: string; // YYYY-MM-DD in local time
+  mealCount: number;
+  waterMl: number;
+}
+
+export interface WeeklyMetricsSnapshot {
+  startDateKey: string;
+  endDateKey: string;
+  loggedMealDaysCount: number;
+  loggedWaterDaysCount: number;
+  waterGoalMetDaysCount: number;
+  totalMealsLogged: number;
+  dailyAverageTotals: MacroTotals;
+  weeklyTotals: MacroTotals;
+  dailyWaterGoalMl: number;
+  averageWaterMl: number;
+  totalWaterMl: number;
+  dailyGoalsSnapshot: DailyNutritionGoals;
+  days: WeeklyDaySnapshot[];
+}
+
+export interface WeeklyReportAiFeedback {
+  aiSummary: string;
+  highlights: string[];
+  suggestions: string[];
+  estimationDisclaimer: string;
+}
+
+export interface WeeklyReportRecord {
+  id: string;
+  startDateKey: string;
+  endDateKey: string;
+  loggedMealDaysCount: number;
+  totalMealsLogged: number;
+  dailyAverageTotals: MacroTotals;
+  weeklyTotals: MacroTotals;
+  dailyWaterGoalMl: number;
+  averageWaterMl: number;
+  totalWaterMl: number;
+  dailyGoalsSnapshot: DailyNutritionGoals;
+  days: WeeklyDaySnapshot[];
+  aiSummary: string;
+  highlights: string[];
+  suggestions: string[];
+  estimationDisclaimer: string;
+  updatedAtIso: string;
+}
+

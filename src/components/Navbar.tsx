@@ -18,6 +18,7 @@ const NAV_LINKS = [
   { href: '#food-directory', label: 'Foods & Fruits' },
   { href: '#meal-planner', label: 'Meal Planner' },
   { href: '#water-tracker', label: 'Water' },
+  { href: '#weekly-report', label: 'Weekly' },
   { href: '#results', label: 'Nutrition' },
   { href: '#daily-tracker', label: 'Food Diary' },
   { href: '#faq', label: 'FAQ' },
@@ -54,7 +55,7 @@ export function Navbar({
         {/* Zone 2: Navigation links */}
         <nav
           aria-label="Primary navigation"
-          className="hidden lg:flex items-center gap-5 text-sm font-medium text-[#644A52]"
+          className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-sm font-medium text-[#644A52]"
         >
           {NAV_LINKS.map((link) => (
             <a

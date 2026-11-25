@@ -151,7 +151,7 @@
         },
         "input": {
           "type": "object",
-          "description": "User parameters (age, heightCm, weightKg, sex, fitnessGoal, activityLevel, dietaryPreference, dailyBudgetInr) used to generate the plan."
+          "description": "User parameters used to generate the plan."
         },
         "targetDailyCaloriesKcal": {
           "type": "number",
@@ -190,7 +190,7 @@
         },
         "meals": {
           "type": "array",
-          "description": "Exactly 5 planned Indian meals (Breakfast, Mid-Morning Snack, Lunch, Evening Snack, Dinner)."
+          "description": "Exactly 5 planned Indian meals."
         },
         "estimationDisclaimer": {
           "type": "string",
@@ -283,6 +283,126 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "WeeklyReport": {
+      "title": "WeeklyReport",
+      "description": "Saved 7-day nutrition and hydration summary report with AI insights scoped privately to a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique report identifier (e.g. week-YYYY-MM-DD).",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the report owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "startDateKey": {
+          "type": "string",
+          "description": "7-day window start local date (YYYY-MM-DD).",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "endDateKey": {
+          "type": "string",
+          "description": "7-day window end local date (YYYY-MM-DD).",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "loggedMealDaysCount": {
+          "type": "number",
+          "description": "Number of days with >=1 logged meal in the 7-day window (0..7)."
+        },
+        "totalMealsLogged": {
+          "type": "number",
+          "description": "Total logged meal entries across the week."
+        },
+        "dailyAverageTotals": {
+          "type": "object",
+          "description": "Average estimated calories, protein, carbs, fat, and fiber per logged day."
+        },
+        "weeklyTotals": {
+          "type": "object",
+          "description": "Total estimated calories, protein, carbs, fat, and fiber across the week."
+        },
+        "dailyWaterGoalMl": {
+          "type": "number",
+          "description": "Snapshot of user daily hydration goal in ml."
+        },
+        "averageWaterMl": {
+          "type": "number",
+          "description": "Average water intake in ml across days with water logged (or 7-day window)."
+        },
+        "totalWaterMl": {
+          "type": "number",
+          "description": "Total logged water intake in ml for the week."
+        },
+        "dailyGoalsSnapshot": {
+          "type": "object",
+          "description": "Snapshot of user daily calorie & macro goals for that week."
+        },
+        "days": {
+          "type": "array",
+          "description": "Exactly 7 daily breakdown snapshots (calories, macros, mealCount, waterMl)."
+        },
+        "aiSummary": {
+          "type": "string",
+          "description": "Supportive non-medical AI weekly overview.",
+          "maxLength": 1000
+        },
+        "highlights": {
+          "type": "array",
+          "description": "Up to 5 concise positive observations."
+        },
+        "suggestions": {
+          "type": "array",
+          "description": "Up to 5 practical, supportive suggestions."
+        },
+        "estimationDisclaimer": {
+          "type": "string",
+          "description": "Non-medical & estimated nutrition disclaimer.",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "startDateKey",
+        "endDateKey",
+        "loggedMealDaysCount",
+        "totalMealsLogged",
+        "dailyAverageTotals",
+        "weeklyTotals",
+        "dailyWaterGoalMl",
+        "averageWaterMl",
+        "totalWaterMl",
+        "dailyGoalsSnapshot",
+        "days",
+        "aiSummary",
+        "highlights",
+        "suggestions",
+        "estimationDisclaimer",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -301,6 +421,10 @@
     "/users/{userId}/waterLogs/{entryId}": {
       "schema": { "$ref": "#/entities/WaterLogEntry" },
       "description": "Private daily water intake logs scoped strictly to the owning user."
+    },
+    "/users/{userId}/weeklyReports/{reportId}": {
+      "schema": { "$ref": "#/entities/WeeklyReport" },
+      "description": "Private AI weekly nutrition & hydration reports scoped strictly to the owning user."
     }
   }
 }
