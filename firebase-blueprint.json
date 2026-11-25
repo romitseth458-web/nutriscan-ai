@@ -38,6 +38,10 @@
           "type": "object",
           "description": "Optional body metrics (age, heightCm, weightKg, sex), activity level, fitness goal, dietary preference, and dailyBudgetInr for personalized diet coaching and meal planning."
         },
+        "dailyWaterGoalMl": {
+          "type": "number",
+          "description": "Optional daily hydration goal in milliliters (500 to 10000 ml)."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -222,12 +226,69 @@
         "createdAt",
         "updatedAt"
       ]
+    },
+    "WaterLogEntry": {
+      "title": "WaterLogEntry",
+      "description": "A single water intake log entry recorded privately by a user.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique water log entry identifier.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the entry owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "dateKey": {
+          "type": "string",
+          "description": "Local calendar date key in YYYY-MM-DD format.",
+          "minLength": 10,
+          "maxLength": 10,
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "loggedAtIso": {
+          "type": "string",
+          "description": "ISO-8601 timestamp when the water intake was logged.",
+          "minLength": 10,
+          "maxLength": 40
+        },
+        "amountMl": {
+          "type": "number",
+          "description": "Water volume consumed in milliliters (10 to 5000 ml)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-update timestamp."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "dateKey",
+        "loggedAtIso",
+        "amountMl",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
-      "description": "Private user profile and daily nutrition targets for each authenticated user."
+      "description": "Private user profile, nutrition targets, and daily water goal for each authenticated user."
     },
     "/users/{userId}/meals/{mealId}": {
       "schema": { "$ref": "#/entities/TrackedMeal" },
@@ -236,6 +297,10 @@
     "/users/{userId}/mealPlans/{planId}": {
       "schema": { "$ref": "#/entities/MealPlan" },
       "description": "Private personalized 5-meal Indian meal plans scoped strictly to the owning user."
+    },
+    "/users/{userId}/waterLogs/{entryId}": {
+      "schema": { "$ref": "#/entities/WaterLogEntry" },
+      "description": "Private daily water intake logs scoped strictly to the owning user."
     }
   }
 }

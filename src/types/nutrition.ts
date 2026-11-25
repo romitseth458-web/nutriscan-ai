@@ -175,3 +175,15 @@ export interface IndianMealPlan {
   estimationDisclaimer: string;
   updatedAtIso: string;
 }
+
+// ==================== DAILY WATER INTAKE TRACKER TYPES ====================
+
+export type WaterGoalUnit = 'ml' | 'L';
+
+export interface WaterLogEntry {
+  id: string;
+  dateKey: string; // YYYY-MM-DD in local time
+  loggedAtIso: string;
+  amountMl: number;
+}
+

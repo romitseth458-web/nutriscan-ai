@@ -24,7 +24,7 @@ import type {
   TrackedMealEntry,
   UserDietProfile,
 } from '../types/nutrition';
-import { DEFAULT_DAILY_GOALS } from '../utils/storage';
+import { DEFAULT_DAILY_GOALS, DEFAULT_WATER_GOAL_ML } from '../utils/storage';
 
 export interface UserProfileRecord {
   uid: string;
@@ -33,6 +33,7 @@ export interface UserProfileRecord {
   photoURL?: string;
   dailyGoals: DailyNutritionGoals;
   dietProfile?: UserDietProfile;
+  dailyWaterGoalMl?: number;
 }
 
 const VALID_CATEGORIES = new Set<MealCategory>(['Breakfast', 'Lunch', 'Dinner', 'Snack']);
@@ -283,6 +284,11 @@ export function subscribeToUserProfile(
       const dietProfile = sanitizeDietProfile(
         data.dietProfile as Partial<UserDietProfile> | undefined
       );
+      const rawWaterGoal = data.dailyWaterGoalMl;
+      const dailyWaterGoalMl =
+        typeof rawWaterGoal === 'number' && Number.isFinite(rawWaterGoal)
+          ? Math.round(Math.min(10000, Math.max(500, rawWaterGoal)))
+          : DEFAULT_WATER_GOAL_ML;
       onProfile({
         uid: String(data.uid || userId),
         displayName: String(data.displayName || 'RosoFood Member'),
@@ -290,6 +296,7 @@ export function subscribeToUserProfile(
         photoURL: typeof data.photoURL === 'string' ? data.photoURL : undefined,
         dailyGoals: sanitizeDailyGoals((data.dailyGoals as Partial<DailyNutritionGoals>) || {}),
         dietProfile,
+        dailyWaterGoalMl,
       });
     },
     (error) => {
@@ -345,6 +352,23 @@ export async function saveUserDailyGoals(
   try {
     await updateDoc(ref, {
       dailyGoals: sanitizeDailyGoals(goals),
+      updatedAt: serverTimestamp(),
+    });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, path);
+  }
+}
+
+export async function saveUserWaterGoal(
+  userId: string,
+  goalMl: number
+): Promise<void> {
+  const path = `users/${userId}`;
+  const ref = doc(db, 'users', userId);
+  const safeGoalMl = Math.round(clampNumber(goalMl, 500, 10000, DEFAULT_WATER_GOAL_ML));
+  try {
+    await updateDoc(ref, {
+      dailyWaterGoalMl: safeGoalMl,
       updatedAt: serverTimestamp(),
     });
   } catch (error) {

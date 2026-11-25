@@ -21,6 +21,7 @@ import { ResultsDashboard } from './components/ResultsDashboard';
 import { DietSuggestionsSection } from './components/DietSuggestionsSection';
 import { DailyTrackerSection } from './components/DailyTrackerSection';
 import { MealPlannerSection } from './components/MealPlannerSection';
+import { WaterTrackerSection } from './components/WaterTrackerSection';
 import { FaqSection } from './components/FaqSection';
 import { GoalCalculatorModal } from './components/GoalCalculatorModal';
 import { ProfileModal } from './components/ProfileModal';
@@ -36,8 +37,14 @@ import {
   saveMealForUser,
   saveUserDailyGoals,
   saveUserDietProfile,
+  saveUserWaterGoal,
   subscribeToUserMeals,
 } from './services/userMealsService';
+import {
+  addWaterLogForUser,
+  deleteWaterLogForUser,
+  subscribeToUserWaterLogs,
+} from './services/waterTrackerService';
 import type {
   DailyNutritionGoals,
   FoodAnalysisResult,
@@ -45,9 +52,14 @@ import type {
   MealCategory,
   TrackedMealEntry,
   UserDietProfile,
+  WaterLogEntry,
 } from './types/nutrition';
 import type { PreparedFoodImage } from './utils/imageUtils';
-import { DEFAULT_DAILY_GOALS, getLocalDateKey } from './utils/storage';
+import {
+  DEFAULT_DAILY_GOALS,
+  DEFAULT_WATER_GOAL_ML,
+  getLocalDateKey,
+} from './utils/storage';
 
 export default function App() {
   const {
@@ -76,15 +88,46 @@ export default function App() {
 
   const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
   const [savedMealPlans, setSavedMealPlans] = useState<IndianMealPlan[]>([]);
+  const [waterLogs, setWaterLogs] = useState<WaterLogEntry[]>([]);
+  const [waterGoalMl, setWaterGoalMl] = useState<number>(DEFAULT_WATER_GOAL_ML);
+  const [todayDateKey, setTodayDateKey] = useState<string>(() => getLocalDateKey());
   const [dailyGoals, setDailyGoals] = useState<DailyNutritionGoals>(DEFAULT_DAILY_GOALS);
   const [selectedDateKey, setSelectedDateKey] = useState<string>(() => getLocalDateKey());
 
-  // Sync user's private daily goals from their Firestore profile
+  // Automatically detect local-date rollover at midnight or tab focus without erasing history
+  useEffect(() => {
+    const syncLocalDate = () => {
+      const current = getLocalDateKey();
+      setTodayDateKey((prev) => {
+        if (prev !== current) {
+          setSelectedDateKey((sel) => (sel === prev ? current : sel));
+        }
+        return current;
+      });
+    };
+
+    const intervalId = window.setInterval(syncLocalDate, 30_000);
+    window.addEventListener('focus', syncLocalDate);
+    document.addEventListener('visibilitychange', syncLocalDate);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', syncLocalDate);
+      document.removeEventListener('visibilitychange', syncLocalDate);
+    };
+  }, []);
+
+  // Sync user's private daily goals & water goal from their Firestore profile
   useEffect(() => {
     if (userProfile?.dailyGoals) {
       setDailyGoals(userProfile.dailyGoals);
     } else if (!user) {
       setDailyGoals(DEFAULT_DAILY_GOALS);
+    }
+
+    if (typeof userProfile?.dailyWaterGoalMl === 'number') {
+      setWaterGoalMl(userProfile.dailyWaterGoalMl);
+    } else if (!user) {
+      setWaterGoalMl(DEFAULT_WATER_GOAL_ML);
     }
   }, [userProfile, user]);
 
@@ -93,6 +136,7 @@ export default function App() {
     if (!authReady || !user) {
       setTrackedMeals([]);
       setSavedMealPlans([]);
+      setWaterLogs([]);
       setSelectedImage(null);
       setActivePreviewUrl(null);
       setAnalysisResult(null);
@@ -105,6 +149,7 @@ export default function App() {
     if (!user.emailVerified) {
       setTrackedMeals([]);
       setSavedMealPlans([]);
+      setWaterLogs([]);
       return;
     }
 
@@ -114,10 +159,14 @@ export default function App() {
     const unsubscribePlans = subscribeToUserMealPlans(user.uid, (plans) => {
       setSavedMealPlans(plans);
     });
+    const unsubscribeWater = subscribeToUserWaterLogs(user.uid, (logs) => {
+      setWaterLogs(logs);
+    });
 
     return () => {
       unsubscribeMeals();
       unsubscribePlans();
+      unsubscribeWater();
     };
   }, [authReady, user, user?.uid, user?.emailVerified]);
 
@@ -320,6 +369,44 @@ export default function App() {
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Unable to delete meal plan.');
     }
+  }
+
+  async function handleUpdateWaterGoal(goalMl: number) {
+    if (!user) return;
+    if (!user.emailVerified) {
+      showToast('Verify your email address first to save your daily water goal.');
+      setIsProfileOpen(true);
+      return;
+    }
+    setWaterGoalMl(goalMl);
+    await saveUserWaterGoal(user.uid, goalMl);
+    showToast(`Saved daily water goal: ${goalMl.toLocaleString()} ml`);
+  }
+
+  async function handleAddWater(amountMl: number, dateKey: string) {
+    if (!user) return;
+    if (!user.emailVerified) {
+      showToast('Verify your email address first to save water logs to your private diary.');
+      setIsProfileOpen(true);
+      return;
+    }
+    const entry: WaterLogEntry = {
+      id:
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `water-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      dateKey,
+      loggedAtIso: new Date().toISOString(),
+      amountMl,
+    };
+    await addWaterLogForUser(user.uid, entry);
+    showToast(`Logged +${amountMl} ml water`);
+  }
+
+  async function handleDeleteWaterEntry(entryId: string) {
+    if (!user || !user.emailVerified) return;
+    await deleteWaterLogForUser(user.uid, entryId);
+    showToast('Water entry removed');
   }
 
   function handleInspectEntry(entry: TrackedMealEntry) {
@@ -566,6 +653,16 @@ export default function App() {
             onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
           />
 
+          <WaterTrackerSection
+            entries={waterLogs}
+            waterGoalMl={waterGoalMl}
+            todayDateKey={todayDateKey}
+            isEmailVerified={Boolean(user.emailVerified)}
+            onUpdateWaterGoal={handleUpdateWaterGoal}
+            onAddWater={handleAddWater}
+            onDeleteWaterEntry={handleDeleteWaterEntry}
+          />
+
           <FaqSection />
         </main>
 
@@ -597,6 +694,9 @@ export default function App() {
                 </a>
                 <a href="#meal-planner" className="hover:text-[#241118]">
                   AI Meal Planner
+                </a>
+                <a href="#water-tracker" className="hover:text-[#241118]">
+                  Water Tracker
                 </a>
                 <a href="#results" className="hover:text-[#241118]">
                   Nutrition Dashboard

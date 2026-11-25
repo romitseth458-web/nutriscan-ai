@@ -11,6 +11,8 @@ export const DEFAULT_DAILY_GOALS: DailyNutritionGoals = {
   fiberGrams: 30,
 };
 
+export const DEFAULT_WATER_GOAL_ML = 2500;
+
 export function getLocalDateKey(date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
