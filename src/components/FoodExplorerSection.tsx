@@ -28,6 +28,7 @@ export function FoodExplorerSection({
 }: FoodExplorerSectionProps) {
   const [activeCategory, setActiveCategory] = useState<'All' | FoodCatalogCategory>('Fruits');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAllItems, setShowAllItems] = useState(false);
   const [aiQuery, setAiQuery] = useState('');
   const [isAiEstimating, setIsAiEstimating] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -116,74 +117,69 @@ export function FoodExplorerSection({
     return 'Dinner';
   }
 
+  const visibleItems =
+    showAllItems || searchQuery.trim().length > 0 ? filteredItems : filteredItems.slice(0, 6);
+
   return (
-    <section id="food-directory" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        {/* Header + AI Custom Any-Food / Any-Fruit Estimator */}
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+    <section id="food-directory" className="bg-[#FFF8F9]">
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        {/* Header + Compact AI Custom Estimator */}
+        <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
           <div className="max-w-xl">
-            <p className="text-xs font-medium text-[#BE123C]">
-              Every Fruit &amp; Favorite Dish
-            </p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
               Food &amp; Fruit Nutrition Explorer
-            </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#644A52]">
-              Browse nutrition facts for 36+ fresh and dried fruits, authentic South Indian tiffins
-              &amp; meals, North Indian staples, proteins, grains, nuts, snacks, and drinks—or type
-              any custom dish or fruit combination for instant AI estimation.
+            </p>
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              Filter Indian staples &amp; fruits or estimate any dish by name.
             </p>
           </div>
 
           <form
             onSubmit={handleAiTextEstimate}
-            className="w-full max-w-lg rounded-2xl border border-[#E5CFD4] bg-white p-3.5"
+            className="flex w-full max-w-lg flex-col gap-2 sm:flex-row"
           >
-            <label htmlFor="ai-food-query" className="block text-xs font-medium text-[#644A52]">
-              Estimate any food, fruit, or meal combo by name
-            </label>
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-              <input
-                id="ai-food-query"
-                type="text"
-                value={aiQuery}
-                onChange={(e) => setAiQuery(e.target.value)}
-                placeholder="e.g., 2 idlis, 1 masala dosa with sambar, and filter coffee"
-                className="min-h-[42px] flex-1 rounded-lg border border-[#E5CFD4] px-3 py-2 text-sm text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
-              />
-              <button
-                type="submit"
-                disabled={isAiEstimating || !aiQuery.trim()}
-                className="inline-flex min-h-[42px] items-center justify-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
-              >
-                {isAiEstimating ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                    Estimating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                    Estimate with AI
-                  </>
-                )}
-              </button>
-            </div>
-            {aiError && (
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-red-700">
-                <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                <span>{aiError}</span>
-              </p>
-            )}
+            <input
+              id="ai-food-query"
+              type="text"
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              placeholder="Estimate dish by name (e.g. 2 idli + sambar)"
+              aria-label="Estimate any food, fruit, or meal combo by name"
+              className="min-h-[42px] flex-1 rounded-xl border border-[#E5CFD4] bg-white px-3 py-2 text-xs text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none sm:text-sm"
+            />
+            <button
+              type="submit"
+              disabled={isAiEstimating || !aiQuery.trim()}
+              className="inline-flex min-h-[42px] items-center justify-center gap-1.5 rounded-xl bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+            >
+              {isAiEstimating ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  Estimating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                  AI Estimate
+                </>
+              )}
+            </button>
           </form>
         </div>
 
-        {/* Category Filter Tabs + Search Filter */}
-        <div className="mt-8 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        {aiError && (
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-red-700">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{aiError}</span>
+          </p>
+        )}
+
+        {/* Compact Single-Row Category Filter Tabs + Search Filter */}
+        <div className="mt-4 flex flex-col justify-between gap-2.5 lg:flex-row lg:items-center">
           <div
             role="tablist"
             aria-label="Food and fruit categories"
-            className="flex flex-wrap items-center gap-1.5"
+            className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1"
           >
             {FOOD_CATALOG_CATEGORIES.map((category) => (
               <button
@@ -191,8 +187,11 @@ export function FoodExplorerSection({
                 type="button"
                 role="tab"
                 aria-selected={activeCategory === category}
-                onClick={() => setActiveCategory(category)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
+                onClick={() => {
+                  setActiveCategory(category);
+                  setShowAllItems(false);
+                }}
+                className={`min-h-[38px] shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap cursor-pointer ${
                   activeCategory === category
                     ? 'bg-[#BE123C] text-white'
                     : 'border border-[#EEDCE0] bg-white text-[#644A52] hover:text-[#241118]'
@@ -203,7 +202,7 @@ export function FoodExplorerSection({
             ))}
           </div>
 
-          <div className="relative w-full lg:w-72 shrink-0">
+          <div className="relative w-full lg:w-64 shrink-0">
             <Search
               className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-[#7E6069]"
               aria-hidden="true"
@@ -212,23 +211,19 @@ export function FoodExplorerSection({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Filter foods or fruits (e.g. dosa, idli, mango, roti)..."
+              placeholder="Filter foods (dosa, mango, roti)..."
               aria-label="Filter food and fruit directory"
-              className="min-h-[40px] w-full rounded-lg border border-[#E5CFD4] bg-white py-2 pr-3 pl-9 text-xs text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
+              className="min-h-[40px] w-full rounded-xl border border-[#E5CFD4] bg-white py-2 pr-3 pl-9 text-xs text-[#241118] placeholder:text-[#8E737B] focus:border-[#BE123C] focus:outline-none"
             />
           </div>
         </div>
 
         {/* Catalog Grid */}
         {filteredItems.length === 0 ? (
-          <div className="mt-6 rounded-2xl border border-[#EEDCE0] bg-white p-8 text-center">
-            <Apple className="mx-auto h-7 w-7 text-[#BE123C]" aria-hidden="true" />
+          <div className="mt-4 rounded-xl border border-[#EEDCE0] bg-white p-6 text-center">
+            <Apple className="mx-auto h-6 w-6 text-[#BE123C]" aria-hidden="true" />
             <p className="mt-2 font-display text-sm font-semibold text-[#241118]">
-              No matching item in quick directory for &ldquo;{searchQuery}&rdquo;
-            </p>
-            <p className="mt-1 text-xs text-[#7E6069]">
-              Use the &ldquo;Estimate with AI&rdquo; bar above to analyze any dish or fruit in the
-              world.
+              No matching item for &ldquo;{searchQuery}&rdquo;
             </p>
             <button
               type="button"
@@ -236,20 +231,21 @@ export function FoodExplorerSection({
                 setAiQuery(searchQuery);
                 setActiveCategory('All');
               }}
-              className="mt-4 min-h-[38px] rounded-lg bg-[#BE123C] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
+              className="mt-3 min-h-[40px] rounded-lg bg-[#BE123C] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
             >
               Send &ldquo;{searchQuery}&rdquo; to AI Estimator
             </button>
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => {
-              const analysis = catalogItemToAnalysis(item);
-              return (
-                <div
-                  key={item.id}
-                  className="flex flex-col justify-between rounded-2xl border border-[#EEDCE0] bg-white p-5 transition-colors hover:border-[#D9A7B2]"
-                >
+          <>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleItems.map((item) => {
+                const analysis = catalogItemToAnalysis(item);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col justify-between rounded-xl border border-[#EEDCE0] bg-white p-3.5 transition-colors hover:border-[#D9A7B2]"
+                  >
                   <div>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -311,7 +307,24 @@ export function FoodExplorerSection({
                 </div>
               );
             })}
-          </div>
+            </div>
+
+            {filteredItems.length > 6 && !searchQuery.trim() && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAllItems((prev) => !prev)}
+                  className="min-h-[42px] rounded-xl border border-[#E5CFD4] bg-white px-5 py-2 text-xs font-semibold text-[#BE123C] transition-colors hover:bg-[#FDF2F4] cursor-pointer"
+                >
+                  {showAllItems
+                    ? 'Show fewer items'
+                    : `Show all ${filteredItems.length} ${
+                        activeCategory === 'All' ? 'foods' : activeCategory
+                      }`}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>

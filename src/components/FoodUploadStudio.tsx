@@ -195,48 +195,42 @@ export function FoodUploadStudio({
         aria-label="Capture food photo using device camera"
       />
 
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-12 lg:gap-12">
-          {/* Left column: Hero Proposition + Upload Controls */}
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-12 lg:gap-8">
+          {/* Left column: Compact Proposition + Upload Controls */}
           <div className="flex flex-col justify-between lg:col-span-6">
             <div>
               <p className="text-xs font-medium tracking-wide text-[#BE123C]">
-                Cooked With Love · Indian &amp; Global Food Vision AI
+                Indian &amp; Global Food Vision AI
               </p>
-              <h1
-                className="mt-3 font-display font-bold tracking-tight text-[#241118]"
-                style={{
-                  fontSize: 'clamp(2.25rem, 4vw, 3.35rem)',
-                  lineHeight: 1.08,
-                  textWrap: 'balance',
-                }}
+              <h2
+                className="mt-1 font-display text-xl font-bold tracking-tight text-[#241118] sm:text-2xl"
+                style={{ textWrap: 'balance' }}
               >
-                Nourish every thali &amp; meal with one photo.
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-relaxed text-[#644A52]">
-                Upload a photo of an Indian thali, tiffin, street snack, mithai, or home meal.
-                RosoFood AI recognizes multiple items on one plate in Hindi and English, accounts
-                for oil, ghee, and cooking methods, estimates grams using IFCT/USDA reference data,
-                and lets you edit before saving.
+                Scan any thali or meal photo for instant macros.
+              </h2>
+              <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-[#644A52] sm:text-sm">
+                Recognizes multiple dishes in Hindi &amp; English, accounts for oil, ghee, and
+                cooking methods using IFCT/USDA references, and lets you edit grams before saving.
               </p>
 
               {/* Primary upload & camera action controls */}
-              <div className="mt-7 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isAnalyzing}
-                  className="inline-flex min-h-[46px] items-center gap-2.5 rounded-xl bg-[#BE123C] px-6 py-3 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#9F1239] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-[#BE123C] px-4 py-2.5 text-xs font-semibold text-white transition-colors duration-150 hover:bg-[#9F1239] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer sm:text-sm"
                 >
                   <Upload className="h-4 w-4" aria-hidden="true" />
-                  Upload Food Image
+                  Upload Photo
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setIsCameraOpen(true)}
                   disabled={isAnalyzing}
-                  className="hidden sm:inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-3 text-sm font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="hidden sm:inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-4 py-2.5 text-xs font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer sm:text-sm"
                 >
                   <Camera className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                   Use Camera
@@ -246,7 +240,7 @@ export function FoodUploadStudio({
                   type="button"
                   onClick={() => mobileCameraInputRef.current?.click()}
                   disabled={isAnalyzing}
-                  className="inline-flex sm:hidden min-h-[46px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-3 text-sm font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex sm:hidden min-h-[44px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-4 py-2.5 text-xs font-semibold text-[#241118] transition-colors duration-150 hover:bg-[#FDF2F4] disabled:opacity-50 whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <Camera className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                   Take Photo
@@ -255,27 +249,26 @@ export function FoodUploadStudio({
                 <button
                   type="button"
                   onClick={onOpenVoiceAssistant}
-                  className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-[#BE123C]/30 bg-[#FDF2F4] px-5 py-3 text-sm font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FCE7EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 whitespace-nowrap shrink-0 cursor-pointer"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#BE123C]/30 bg-[#FDF2F4] px-3.5 py-2.5 text-xs font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FCE7EB] whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <PhoneCall className="h-4 w-4" aria-hidden="true" />
-                  Talk to AI Diet Assistant
+                  Voice Coach
                 </button>
 
                 <PWAInstallButton variant="hero" onInstalledToast={onShowToast} />
               </div>
 
-              <p className="mt-3 text-xs text-[#7E6069]">
-                Accepts JPG, JPEG, PNG, and WebP up to 20 MB · Automatically compressed to 1024px JPEG
-                for fast mobile &amp; thali scanning
+              <p className="mt-2 text-[11px] text-[#7E6069]">
+                JPG, PNG, WebP up to 20 MB · Compressed automatically for fast mobile scans
               </p>
             </div>
 
-            {/* Quick sample meals row */}
-            <div className="mt-8 border-t border-[#EEDCE0] pt-6">
-              <p className="text-xs font-medium text-[#644A52]">
-                Try a sample Indian thali, South Indian tiffin, snack platter, or fruit bowl
+            {/* Quick sample meals row — horizontal scroll on mobile */}
+            <div className="mt-4 border-t border-[#EEDCE0] pt-3.5">
+              <p className="text-[11px] font-medium text-[#644A52]">
+                Or try a sample meal:
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-1 sm:grid sm:grid-cols-4 lg:grid-cols-4">
                 {SAMPLE_MEALS.map((sample) => {
                   const isLoadingThis = loadingSampleId === sample.id;
                   const isActive = selectedImage?.fileName === sample.fileName;
@@ -285,13 +278,13 @@ export function FoodUploadStudio({
                       type="button"
                       disabled={isAnalyzing || Boolean(loadingSampleId)}
                       onClick={() => void handleSelectSample(sample)}
-                      className={`group flex flex-col overflow-hidden rounded-xl border text-left transition-colors duration-150 cursor-pointer ${
+                      className={`group flex w-28 shrink-0 flex-col overflow-hidden rounded-xl border text-left transition-colors duration-150 cursor-pointer sm:w-auto ${
                         isActive
                           ? 'border-[#BE123C] bg-[#FDF2F4]'
                           : 'border-[#EEDCE0] bg-[#FFF8F9] hover:border-[#D9A7B2] hover:bg-white'
                       }`}
                     >
-                      <div className="aspect-4/3 w-full overflow-hidden bg-[#F9EBEE]">
+                      <div className="h-14 w-full overflow-hidden bg-[#F9EBEE]">
                         <img
                           src={sample.imageUrl}
                           alt={sample.label}
@@ -299,7 +292,7 @@ export function FoodUploadStudio({
                           className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                         />
                       </div>
-                      <span className="truncate px-2.5 py-2 text-xs font-medium text-[#241118]">
+                      <span className="truncate px-2 py-1.5 text-[11px] font-medium text-[#241118]">
                         {isLoadingThis ? 'Loading...' : sample.label}
                       </span>
                     </button>
@@ -325,7 +318,7 @@ export function FoodUploadStudio({
               }`}
             >
               {!selectedImage ? (
-                <div className="relative flex min-h-[340px] flex-1 flex-col justify-end lg:min-h-full">
+                <div className="relative flex min-h-[190px] flex-1 flex-col justify-end lg:min-h-full">
                   {!heroImageFailed ? (
                     <img
                       src={HERO_IMAGE_PATH}
@@ -336,26 +329,26 @@ export function FoodUploadStudio({
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#FDF2F4] to-[#F7DCE2]">
-                      <ImageIcon className="h-16 w-16 text-[#BE123C]/40" aria-hidden="true" />
+                      <ImageIcon className="h-12 w-12 text-[#BE123C]/40" aria-hidden="true" />
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#241118]/85 via-[#241118]/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#241118]/85 via-[#241118]/25 to-transparent" />
 
-                  <div className="relative z-10 p-6 sm:p-7">
-                    <div className="flex flex-col gap-4 rounded-xl border border-white/20 bg-[#241118]/75 p-5 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                  <div className="relative z-10 p-3.5 sm:p-5">
+                    <div className="flex flex-col gap-3 rounded-xl border border-white/20 bg-[#241118]/75 p-3.5 text-white backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="font-display text-base font-semibold">
+                        <p className="font-display text-sm font-semibold">
                           Drop an Indian thali or meal photo here
                         </p>
-                        <p className="mt-1 text-xs text-white/80">
-                          Detects multiple dishes, grams, oil/ghee notes, and Hindi &amp; English names.
+                        <p className="mt-0.5 text-[11px] text-white/80">
+                          Detects multiple dishes, grams, oil/ghee, and Hindi &amp; English names.
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-[#BE123C] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer"
+                        className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg bg-[#BE123C] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer"
                       >
                         Browse File
                         <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

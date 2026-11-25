@@ -40,16 +40,16 @@ const SUPPORTED_MEALS = [
 export function HowItWorksSection({ onOpenCalculator }: HowItWorksSectionProps) {
   return (
     <section id="how-it-works" className="border-b border-[#EEDCE0] bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div className="max-w-2xl">
             <p className="text-xs font-medium text-[#BE123C]">Care In Every Bite</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+            <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-[#241118] sm:text-xl">
               How RosoFood AI Works
             </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#644A52]">
-              No barcode scanning or manual ingredient typing required. Understand what is on your
-              plate in three straightforward steps.
+            <p className="mt-1 text-xs leading-relaxed text-[#644A52] sm:text-sm">
+              No barcode scanning or manual ingredient typing required. Understand your plate in
+              three quick steps.
             </p>
           </div>
 
@@ -63,24 +63,24 @@ export function HowItWorksSection({ onOpenCalculator }: HowItWorksSectionProps) 
           </button>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
           {STEPS.map((step) => {
             const Icon = step.icon;
             return (
               <div
                 key={step.number}
-                className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-6"
+                className="rounded-xl border border-[#EEDCE0] bg-[#FFF8F9] p-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-semibold text-[#BE123C]">
+                  <span className="font-mono text-xs font-semibold text-[#BE123C]">
                     {step.number}
                   </span>
-                  <Icon className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
+                  <Icon className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
                 </div>
-                <h3 className="mt-4 font-display text-base font-semibold text-[#241118]">
+                <h3 className="mt-2 font-display text-sm font-semibold text-[#241118]">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
+                <p className="mt-1 text-xs leading-relaxed text-[#644A52]">
                   {step.description}
                 </p>
               </div>
@@ -89,19 +89,18 @@ export function HowItWorksSection({ onOpenCalculator }: HowItWorksSectionProps) 
         </div>
 
         {/* Supported cuisines & privacy strip */}
-        <div className="mt-6 flex flex-col justify-between gap-4 rounded-2xl border border-[#EEDCE0] bg-white px-6 py-5 lg:flex-row lg:items-center">
+        <div className="mt-3 flex flex-col justify-between gap-2 rounded-xl border border-[#EEDCE0] bg-white px-4 py-3 lg:flex-row lg:items-center">
           <div>
-            <p className="font-display text-sm font-semibold text-[#241118]">
+            <p className="font-display text-xs font-semibold text-[#241118] sm:text-sm">
               Recognizes Indian &amp; Global Meals
             </p>
-            <p className="mt-0.5 text-xs text-[#7E6069]">
-              If a dish looks visually ambiguous (such as thick curries or sauces), RosoFood asks a
-              quick clarifying question before finalizing numbers.
+            <p className="mt-0.5 text-[11px] text-[#7E6069]">
+              If a dish looks ambiguous, RosoFood asks a quick clarifying question before finalizing.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#644A52]">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-[#644A52]">
             {SUPPORTED_MEALS.map((meal, idx) => (
-              <span key={meal} className="inline-flex items-center gap-3">
+              <span key={meal} className="inline-flex items-center gap-2.5">
                 <span>{meal}</span>
                 {idx < SUPPORTED_MEALS.length - 1 && (
                   <span className="text-[#D9A7B2]" aria-hidden="true">

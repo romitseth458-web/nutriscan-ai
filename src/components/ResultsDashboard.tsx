@@ -153,24 +153,22 @@ export function ResultsDashboard({
   if (!editedAnalysis || editedAnalysis.identificationStatus !== 'identified') {
     return (
       <section id="results" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 rounded-2xl border border-[#EEDCE0] bg-white p-8 text-center sm:flex-row sm:text-left">
+        <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-between gap-4 rounded-2xl border border-[#EEDCE0] bg-white p-5 text-center sm:flex-row sm:text-left">
             <div className="max-w-xl">
-              <h2 className="font-display text-xl font-bold text-[#241118]">
+              <h2 className="font-display text-lg font-bold text-[#241118]">
                 Nutrition Dashboard
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
-                Upload a meal photo or select an Indian thali, South Indian tiffin, snack, or fruit
-                platter above and click{' '}
-                <strong className="font-semibold text-[#241118]">Analyze Food</strong> to view
-                calorie estimates, cooking method &amp; oil/ghee notes, and editable per-dish gram
-                portions.
+              <p className="mt-1 text-xs leading-relaxed text-[#644A52] sm:text-sm">
+                Upload a meal photo or tap a sample Indian dish above and click{' '}
+                <strong className="font-semibold text-[#241118]">Analyze Food</strong> for calories,
+                oil/ghee notes, and editable gram portions.
               </p>
             </div>
             <button
               type="button"
               onClick={onJumpToUpload}
-              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-5 py-2.5 text-sm font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] whitespace-nowrap shrink-0 cursor-pointer"
+              className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[#E5CFD4] bg-[#FFF8F9] px-4 py-2 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] whitespace-nowrap shrink-0 cursor-pointer sm:text-sm"
             >
               <Utensils className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
               Scan a Meal
@@ -338,10 +336,10 @@ export function ResultsDashboard({
 
   return (
     <section id="results" className="border-b border-[#EEDCE0] bg-[#FFF8F9]">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
         {/* Honest estimation disclaimer bar */}
-        <div className="mb-6 flex items-start gap-2.5 rounded-xl border border-[#E5CFD4] bg-white px-4 py-3 text-xs text-[#644A52]">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#BE123C]" aria-hidden="true" />
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-[#E5CFD4] bg-white px-3.5 py-2.5 text-xs text-[#644A52]">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#BE123C]" aria-hidden="true" />
           <p>
             <strong className="font-semibold text-[#241118]">Estimated Nutrition Values:</strong>{' '}
             {editedAnalysis.estimationDisclaimer}
@@ -349,11 +347,11 @@ export function ResultsDashboard({
         </div>
 
         {/* Detected Meal Summary Header + Portion Adjuster + Add to Daily Diary */}
-        <div className="rounded-2xl border border-[#EEDCE0] bg-white p-5 sm:p-6">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
-            <div className="flex items-center gap-4">
+        <div className="rounded-2xl border border-[#EEDCE0] bg-white p-4 sm:p-5">
+          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+            <div className="flex items-center gap-3">
               {imagePreviewUrl && (
-                <div className="h-20 w-24 shrink-0 overflow-hidden rounded-xl border border-[#EEDCE0] bg-[#FDF3F5]">
+                <div className="h-16 w-20 shrink-0 overflow-hidden rounded-xl border border-[#EEDCE0] bg-[#FDF3F5]">
                   <img
                     src={imagePreviewUrl}
                     alt={editedAnalysis.mealTitle}
@@ -381,13 +379,12 @@ export function ResultsDashboard({
                     {editedAnalysis.estimatedServingSizeGrams} g
                   </span>
                 </div>
-                <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+                <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-[#241118] sm:text-xl">
                   {editedAnalysis.mealTitle}
                 </h2>
-                <p className="mt-1 text-xs text-[#7E6069]">
+                <p className="mt-0.5 text-xs text-[#7E6069]">
                   {editableItems.length} food{' '}
                   {editableItems.length === 1 ? 'item' : 'items'} · Edit dish names or grams below
-                  before saving
                 </p>
               </div>
             </div>
@@ -521,34 +518,34 @@ export function ResultsDashboard({
         </div>
 
         {/* 6 Core Nutrition Cards */}
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="mt-4 grid grid-cols-3 gap-2.5 lg:grid-cols-6">
           {statCards.map((card) => (
             <div
               key={card.label}
-              className={`rounded-2xl border p-4 sm:p-5 ${
+              className={`rounded-xl border p-3 ${
                 card.highlight
                   ? 'border-[#BE123C]/30 bg-[#FDF2F4]'
                   : 'border-[#EEDCE0] bg-white'
               }`}
             >
-              <p className="text-xs font-medium text-[#644A52]">{card.label}</p>
-              <div className="mt-2 flex items-baseline gap-1 font-mono tabular-nums">
-                <span className="text-2xl font-bold text-[#241118]">{card.value}</span>
-                <span className="text-xs font-medium text-[#644A52]">{card.unit}</span>
+              <p className="truncate text-[11px] font-medium text-[#644A52]">{card.label}</p>
+              <div className="mt-1 flex items-baseline gap-1 font-mono tabular-nums">
+                <span className="text-lg font-bold text-[#241118] sm:text-xl">{card.value}</span>
+                <span className="text-[11px] font-medium text-[#644A52]">{card.unit}</span>
               </div>
-              <p className="mt-1 truncate text-xs text-[#7E6069]">{card.subtext}</p>
+              <p className="mt-0.5 truncate text-[10px] text-[#7E6069]">{card.subtext}</p>
             </div>
           ))}
         </div>
 
         {/* Nutrition Charts */}
-        <div className="mt-6">
+        <div className="mt-4">
           <NutritionCharts totals={editedAnalysis.totals} dailyGoals={dailyGoals} />
         </div>
 
         {/* Editable Multi-Item Indian & Meal Breakdown */}
-        <div className="mt-6 overflow-hidden rounded-2xl border border-[#EEDCE0] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEDCE0] px-5 py-4 sm:px-6">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-[#EEDCE0] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#EEDCE0] px-4 py-3 sm:px-5">
             <div>
               <h3 className="font-display text-base font-semibold text-[#241118]">
                 Plate Items &amp; Editable Portions

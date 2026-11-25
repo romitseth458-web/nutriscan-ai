@@ -166,16 +166,15 @@ export function DailyTrackerSection({
 
   return (
     <section id="daily-tracker" className="bg-[#FFF8F9]">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         {/* Header & Date / Goal / Export Controls */}
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+        <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
           <div>
-            <p className="text-xs font-medium text-[#BE123C]">Daily Nutrition Log</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
-              Daily Food Diary
-            </h2>
-            <p className="mt-1 text-sm text-[#644A52]">
-              Track daily calories, protein, carbohydrates, and fats across saved meals.
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
+              Daily Nutrition Log
+            </p>
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              View or edit daily calorie, protein, carb, and fat logs.
             </p>
           </div>
 
@@ -315,33 +314,33 @@ export function DailyTrackerSection({
         )}
 
         {/* Daily Summary Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-3">
           {macroProgress.map((item) => {
             const pct = Math.min(100, Math.round((item.current / Math.max(1, item.goal)) * 100));
             const remaining = Math.max(0, Math.round((item.goal - item.current) * 10) / 10);
             return (
               <div
                 key={item.label}
-                className="rounded-2xl border border-[#EEDCE0] bg-white p-5"
+                className="rounded-xl border border-[#EEDCE0] bg-white p-3.5"
               >
                 <div className="flex items-baseline justify-between">
-                  <p className="text-xs font-medium text-[#644A52]">{item.label}</p>
-                  <span className="font-mono text-xs text-[#7E6069] tabular-nums">{pct}%</span>
+                  <p className="text-[11px] font-medium text-[#644A52]">{item.label}</p>
+                  <span className="font-mono text-[11px] text-[#7E6069] tabular-nums">{pct}%</span>
                 </div>
-                <div className="mt-2 flex items-baseline gap-1.5 font-mono tabular-nums">
-                  <span className="text-2xl font-bold text-[#241118]">{item.current}</span>
-                  <span className="text-xs text-[#7E6069]">
+                <div className="mt-1 flex items-baseline gap-1 font-mono tabular-nums">
+                  <span className="text-lg font-bold text-[#241118] sm:text-xl">{item.current}</span>
+                  <span className="text-[11px] text-[#7E6069]">
                     / {item.goal} {item.unit}
                   </span>
                 </div>
-                <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[#F6E9EC]">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#F6E9EC]">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${item.barColor}`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
-                <p className="mt-2 text-xs text-[#7E6069] tabular-nums">
-                  {remaining > 0 ? `${remaining} ${item.unit} remaining` : 'Daily target reached'}
+                <p className="mt-1.5 text-[11px] text-[#7E6069] tabular-nums">
+                  {remaining > 0 ? `${remaining} ${item.unit} left` : 'Target reached'}
                 </p>
               </div>
             );

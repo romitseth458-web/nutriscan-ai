@@ -79,12 +79,12 @@ export function NutritionCharts({ totals, dailyGoals }: NutritionChartsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
       {/* Donut Chart: Energy Share by Macronutrient */}
-      <div className="rounded-2xl border border-[#EEDCE0] bg-white p-6 lg:col-span-6">
+      <div className="rounded-2xl border border-[#EEDCE0] bg-white p-4 sm:p-5 lg:col-span-6">
         <div className="flex items-baseline justify-between gap-4">
           <div>
-            <h3 className="font-display text-base font-semibold text-[#241118]">
+            <h3 className="font-display text-sm font-semibold text-[#241118] sm:text-base">
               Calorie Energy Split
             </h3>
             <p className="mt-0.5 text-xs text-[#7E6069]">
@@ -96,8 +96,8 @@ export function NutritionCharts({ totals, dailyGoals }: NutritionChartsProps) {
           </span>
         </div>
 
-        <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
-          <div className="relative h-44 w-44 shrink-0">
+        <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row">
+          <div className="relative h-36 w-36 shrink-0">
             <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90" role="img" aria-label="Calorie distribution donut chart">
               <circle
                 cx="80"
@@ -130,30 +130,30 @@ export function NutritionCharts({ totals, dailyGoals }: NutritionChartsProps) {
               })}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="font-mono text-2xl font-bold text-[#241118] tabular-nums">
+              <span className="font-mono text-xl font-bold text-[#241118] tabular-nums">
                 {totals.caloriesKcal}
               </span>
-              <span className="text-xs font-medium text-[#7E6069]">kcal est.</span>
+              <span className="text-[11px] font-medium text-[#7E6069]">kcal est.</span>
             </div>
           </div>
 
           <div className="w-full flex-1 divide-y divide-[#F6E9EC]">
             {segments.map((seg) => (
-              <div key={seg.label} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-2.5">
+              <div key={seg.label} className="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-2">
                   <span
-                    className="h-3 w-3 shrink-0 rounded-xs"
+                    className="h-2.5 w-2.5 shrink-0 rounded-xs"
                     style={{ backgroundColor: seg.color }}
                     aria-hidden="true"
                   />
                   <div>
-                    <p className="text-sm font-medium text-[#241118]">{seg.label}</p>
-                    <p className="text-xs text-[#7E6069] tabular-nums">{seg.grams} g</p>
+                    <p className="text-xs font-medium text-[#241118] sm:text-sm">{seg.label}</p>
+                    <p className="text-[11px] text-[#7E6069] tabular-nums">{seg.grams} g</p>
                   </div>
                 </div>
                 <div className="text-right font-mono tabular-nums">
-                  <p className="text-sm font-semibold text-[#241118]">{seg.pct}%</p>
-                  <p className="text-xs text-[#7E6069]">{seg.kcal} kcal</p>
+                  <p className="text-xs font-semibold text-[#241118] sm:text-sm">{seg.pct}%</p>
+                  <p className="text-[11px] text-[#7E6069]">{seg.kcal} kcal</p>
                 </div>
               </div>
             ))}
@@ -162,19 +162,19 @@ export function NutritionCharts({ totals, dailyGoals }: NutritionChartsProps) {
       </div>
 
       {/* Horizontal Bars: Meal Contribution vs Daily Target */}
-      <div className="rounded-2xl border border-[#EEDCE0] bg-white p-6 lg:col-span-6">
+      <div className="rounded-2xl border border-[#EEDCE0] bg-white p-4 sm:p-5 lg:col-span-6">
         <div className="flex items-baseline justify-between gap-4">
           <div>
-            <h3 className="font-display text-base font-semibold text-[#241118]">
+            <h3 className="font-display text-sm font-semibold text-[#241118] sm:text-base">
               Share of Daily Targets
             </h3>
             <p className="mt-0.5 text-xs text-[#7E6069]">
-              How this meal contributes to your configured daily nutrition goals
+              How this meal contributes to your daily nutrition goals
             </p>
           </div>
         </div>
 
-        <div className="mt-6 space-y-4">
+        <div className="mt-4 space-y-3">
           {targetBars.map((bar) => {
             const pct = Math.min(100, Math.round((bar.value / Math.max(1, bar.goal)) * 100));
             return (
@@ -185,7 +185,7 @@ export function NutritionCharts({ totals, dailyGoals }: NutritionChartsProps) {
                     {bar.value} / {bar.goal} {bar.unit} ({pct}%)
                   </span>
                 </div>
-                <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-[#F6E9EC]">
+                <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-[#F6E9EC]">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${bar.color}`}
                     style={{ width: `${pct}%` }}

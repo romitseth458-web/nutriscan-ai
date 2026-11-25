@@ -29,20 +29,20 @@ export function FaqSection() {
 
   return (
     <section id="faq" className="border-t border-[#EEDCE0] bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+      <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <p className="text-xs font-medium text-[#BE123C]">Questions &amp; Privacy</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+            <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-[#241118] sm:text-xl">
               Frequently Asked Questions
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
+            <p className="mt-1 text-xs leading-relaxed text-[#644A52] sm:text-sm">
               Everything you need to know about visual portion estimation, privacy, and daily
               tracking.
             </p>
           </div>
 
-          <div className="divide-y divide-[#EEDCE0] rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] lg:col-span-8">
+          <div className="divide-y divide-[#EEDCE0] rounded-xl border border-[#EEDCE0] bg-[#FFF8F9] lg:col-span-8">
             {FAQS.map((item, idx) => {
               const isOpen = openIndex === idx;
               return (
@@ -51,9 +51,9 @@ export function FaqSection() {
                     type="button"
                     aria-expanded={isOpen}
                     onClick={() => setOpenIndex(isOpen ? null : idx)}
-                    className="flex w-full items-center justify-between gap-4 px-6 py-4 text-left transition-colors hover:bg-white/70 cursor-pointer"
+                    className="flex min-h-[44px] w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors hover:bg-white/70 cursor-pointer"
                   >
-                    <span className="font-display text-sm font-semibold text-[#241118]">
+                    <span className="font-display text-xs font-semibold text-[#241118] sm:text-sm">
                       {item.q}
                     </span>
                     <ChevronDown
@@ -64,7 +64,7 @@ export function FaqSection() {
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-4 text-sm leading-relaxed text-[#644A52]">
+                    <div className="px-4 pb-3 text-xs leading-relaxed text-[#644A52] sm:text-sm">
                       {item.a}
                     </div>
                   )}

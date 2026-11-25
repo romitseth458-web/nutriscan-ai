@@ -265,22 +265,18 @@ export function WaterTrackerSection({
   return (
     <section
       id="water-tracker"
-      className="border-t border-[#EEDCE0] bg-white py-14 sm:py-16"
+      className="bg-white py-5 sm:py-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+        {/* Compact Section Header */}
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#BE123C]">
-              <Droplets className="h-4 w-4" aria-hidden="true" />
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
+              <Droplets className="h-3.5 w-3.5" aria-hidden="true" />
               Daily Hydration Tracker
             </div>
-            <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-[#241118] sm:text-3xl">
-              Daily Water Intake Tracker
-            </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#644A52]">
-              Track your water intake in ml or litres, reset automatically each local morning, and
-              review your daily and 7-day hydration consistency.
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              Track daily ml or litres, reset each local morning, and check 7-day consistency.
             </p>
           </div>
 
@@ -429,22 +425,22 @@ export function WaterTrackerSection({
         )}
 
         {/* Main Progress + Quick Actions Grid */}
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
           {/* Today's Hydration Ring & Progress Card */}
-          <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-5 sm:p-6 lg:col-span-5">
+          <div className="rounded-xl border border-[#EEDCE0] bg-[#FFF8F9] p-4 sm:p-5 lg:col-span-5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#BE123C]">
-                Today&apos;s Progress ({todayDateKey})
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
+                Today ({todayDateKey})
               </span>
               <span className="font-mono text-xs text-[#644A52] tabular-nums">
                 Goal {formatAmount(waterGoalMl)}
               </span>
             </div>
 
-            <div className="mt-5 flex flex-col items-center gap-5 sm:flex-row">
-              {/* Visual Progress Ring */}
-              <div className="relative flex h-40 w-40 shrink-0 items-center justify-center">
-                <svg className="h-40 w-40 -rotate-90" viewBox="0 0 150 150" aria-hidden="true">
+            <div className="mt-3.5 flex flex-row items-center gap-4">
+              {/* Compact Visual Progress Ring */}
+              <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
+                <svg className="h-32 w-32 -rotate-90" viewBox="0 0 150 150" aria-hidden="true">
                   <circle
                     cx="75"
                     cy="75"
@@ -467,10 +463,10 @@ export function WaterTrackerSection({
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="font-mono text-2xl font-bold text-[#241118] tabular-nums">
+                  <span className="font-mono text-xl font-bold text-[#241118] tabular-nums">
                     {todayPercentRaw}%
                   </span>
-                  <span className="mt-0.5 font-mono text-xs font-medium text-[#644A52] tabular-nums">
+                  <span className="mt-0.5 font-mono text-[11px] font-medium text-[#644A52] tabular-nums">
                     {formatAmount(todayTotalMl)}
                   </span>
                 </div>
@@ -553,8 +549,8 @@ export function WaterTrackerSection({
                 )}
               </div>
 
-              {/* +250 ml, +500 ml, +750 ml Quick Buttons */}
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {/* +250 ml, +500 ml, +750 ml Quick Buttons — compact 3-col row on mobile */}
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 {QUICK_AMOUNTS_ML.map((preset) => {
                   const busy = isAddingMl === preset.amountMl;
                   return (
@@ -563,15 +559,15 @@ export function WaterTrackerSection({
                       type="button"
                       disabled={isAddingMl !== null}
                       onClick={() => void handleQuickAdd(preset.amountMl)}
-                      className="flex min-h-[64px] items-center justify-between rounded-xl border border-[#BE123C]/25 bg-white px-4 py-3 text-left transition-all hover:border-[#BE123C] hover:bg-[#FDF2F4] active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+                      className="flex min-h-[54px] flex-col items-center justify-center rounded-xl border border-[#BE123C]/25 bg-white px-2 py-2 text-center transition-all hover:border-[#BE123C] hover:bg-[#FDF2F4] active:scale-[0.99] disabled:opacity-60 cursor-pointer sm:flex-row sm:justify-between sm:px-3.5 sm:text-left"
                     >
                       <div>
-                        <p className="font-mono text-base font-bold text-[#BE123C] tabular-nums">
+                        <p className="font-mono text-xs font-bold text-[#BE123C] tabular-nums sm:text-sm">
                           {preset.label}
                         </p>
-                        <p className="text-[11px] text-[#644A52]">{preset.sublabel}</p>
+                        <p className="text-[10px] text-[#644A52]">{preset.sublabel}</p>
                       </div>
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#BE123C] text-white">
+                      <span className="hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#BE123C] text-white">
                         {busy ? (
                           <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                         ) : (

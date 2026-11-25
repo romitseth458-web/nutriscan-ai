@@ -390,22 +390,18 @@ export function WeeklyReportSection({
   return (
     <section
       id="weekly-report"
-      className="border-t border-[#EEDCE0] bg-[#FFF8F9] py-14 sm:py-16"
+      className="bg-[#FFF8F9] py-5 sm:py-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Section Header + Week Selector */}
-        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#BE123C]">
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+        {/* Compact Section Header + Week Selector */}
+        <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
+          <div className="max-w-xl">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
+              <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
               7-Day Nutrition &amp; Hydration Insights
             </div>
-            <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-[#241118] sm:text-3xl">
-              AI Weekly Nutrition Report
-            </h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#644A52]">
-              Review your 7-day estimated calorie, macro, and water trends alongside your saved
-              targets. Unlogged days stay blank and are never fabricated.
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              Estimated averages &amp; trends vs. saved targets. Missing days are never fabricated.
             </p>
           </div>
 
@@ -719,7 +715,7 @@ export function WeeklyReportSection({
                           : value}
                     </span>
 
-                    <div className="relative mt-2 flex h-40 w-full max-w-[44px] items-end justify-center overflow-hidden rounded-xl border border-[#F2DFE3] bg-[#FFF8F9]">
+                    <div className="relative mt-2 flex h-32 w-full max-w-[42px] items-end justify-center overflow-hidden rounded-xl border border-[#F2DFE3] bg-[#FFF8F9]">
                       {/* Dashed Goal Reference Line */}
                       {goalLineBottomPct > 0 && goalLineBottomPct <= 98 && (
                         <div

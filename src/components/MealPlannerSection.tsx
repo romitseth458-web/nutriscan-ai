@@ -131,6 +131,8 @@ export function MealPlannerSection({
   const [loggedSlots, setLoggedSlots] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
+  const [isIntakeOpen, setIsIntakeOpen] = useState<boolean>(true);
+  const [activeSlotFilter, setActiveSlotFilter] = useState<'all' | MealPlanSlotId>('all');
 
   // Sync any saved profile metrics into blank fields without overriding active user edits
   useEffect(() => {
@@ -272,6 +274,7 @@ export function MealPlannerSection({
       });
       setCurrentPlan(data.plan);
       setPlanNameInput(data.plan.planName);
+      setIsIntakeOpen(false);
       onShowToast('Personalized Indian meal plan ready');
     } catch (err) {
       setErrorMessage(
@@ -445,6 +448,7 @@ export function MealPlannerSection({
     setLoggedSlots({});
     setSwapPromptKey(null);
     setErrorMessage(null);
+    setIsIntakeOpen(false);
     onShowToast(`Loaded "${plan.planName}"`);
   }
 
@@ -459,42 +463,41 @@ export function MealPlannerSection({
   return (
     <section
       id="meal-planner"
-      className="border-t border-[#EEDCE0] bg-[#FFF8F9] py-14 sm:py-18"
+      className="bg-[#FFF8F9] py-5 sm:py-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        {/* Section Heading */}
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#BE123C]">
-              <ChefHat className="h-4 w-4" aria-hidden="true" />
-              AI Meal Planner
+        {/* Compact Section Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#BE123C]">
+              <ChefHat className="h-3.5 w-3.5" aria-hidden="true" />
+              Personalized Indian Meal Planner
             </div>
-            <h2 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-[#241118] sm:text-3xl">
-              Personalized Affordable Indian Meal Planner
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
-              Build a balanced 5-meal Indian plan around everyday foods (roti, dal, rice, paneer,
-              eggs, milk, poha, oats, sabzi &amp; seasonal fruits) tailored to your body, goal, food
-              preference, and daily INR budget.
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              5-meal plan around affordable Indian staples matched to your goal &amp; budget.
             </p>
           </div>
-          {savedPlans.length > 0 && (
-            <div className="text-xs font-medium text-[#644A52]">
-              Saved plans: <span className="font-mono font-bold text-[#241118]">{savedPlans.length}</span>
-            </div>
+          {currentPlan && (
+            <button
+              type="button"
+              onClick={() => setIsIntakeOpen((prev) => !prev)}
+              className="min-h-[38px] rounded-xl border border-[#E5CFD4] bg-white px-3 py-1.5 text-xs font-semibold text-[#241118] hover:bg-[#FDF2F4] cursor-pointer"
+            >
+              {isIntakeOpen ? 'Hide Profile & Budget Form' : 'Edit Profile & Budget'}
+            </button>
           )}
         </div>
 
         {/* Saved Plans Selector Strip */}
         {savedPlans.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-[#EEDCE0] bg-white p-4">
+          <div className="mt-4 rounded-xl border border-[#EEDCE0] bg-white p-3.5">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#644A52]">
-                Your Saved Indian Meal Plans
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#644A52]">
+                Saved Meal Plans ({savedPlans.length})
               </p>
-              <span className="text-[11px] text-[#7E6069]">Tap any plan to view or adjust</span>
+              <span className="text-[11px] text-[#7E6069]">Tap to load</span>
             </div>
-            <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-2.5 flex gap-2.5 overflow-x-auto no-scrollbar pb-1 sm:grid sm:grid-cols-2 lg:grid-cols-3">
               {savedPlans.map((plan) => {
                 const isActive = currentPlan?.id === plan.id;
                 const isConfirming = confirmDeletePlanId === plan.id;
@@ -557,10 +560,11 @@ export function MealPlannerSection({
           </div>
         )}
 
-        {/* User Intake Form */}
+        {/* User Intake Form (collapsible once a plan is generated) */}
+        {(isIntakeOpen || !currentPlan) && (
         <form
           onSubmit={handleGeneratePlan}
-          className="mt-6 rounded-2xl border border-[#EEDCE0] bg-white p-5 shadow-xs sm:p-6"
+          className="mt-4 rounded-xl border border-[#EEDCE0] bg-white p-4 sm:p-5"
         >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F6E9EC] pb-4">
             <div>
@@ -762,10 +766,11 @@ export function MealPlannerSection({
             </div>
           )}
         </form>
+        )}
 
         {/* Active Generated / Loaded Meal Plan */}
         {currentPlan && (
-          <div className="mt-8 space-y-6">
+          <div className="mt-5 space-y-4">
             {/* Total Daily Nutrition Summary & Save Bar */}
             <div className="rounded-2xl border border-[#EEDCE0] bg-white p-5 shadow-xs sm:p-6">
               <div className="flex flex-col justify-between gap-4 border-b border-[#F6E9EC] pb-5 lg:flex-row lg:items-center">
@@ -888,9 +893,44 @@ export function MealPlannerSection({
               </div>
             </div>
 
-            {/* 5 Meal Cards */}
-            <div className="space-y-4">
-              {currentPlan.meals.map((meal) => {
+            {/* Meal Slot Filter Bar for compact mobile browsing */}
+            <div
+              role="tablist"
+              aria-label="Filter meal plan slots"
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar rounded-xl border border-[#EEDCE0] bg-white p-1"
+            >
+              {(
+                [
+                  { id: 'all', label: 'All 5 Meals' },
+                  { id: 'breakfast', label: 'Breakfast' },
+                  { id: 'mid_morning', label: 'Mid-AM' },
+                  { id: 'lunch', label: 'Lunch' },
+                  { id: 'evening_snack', label: 'Evening' },
+                  { id: 'dinner', label: 'Dinner' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeSlotFilter === tab.id}
+                  onClick={() => setActiveSlotFilter(tab.id)}
+                  className={`min-h-[38px] shrink-0 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors whitespace-nowrap cursor-pointer ${
+                    activeSlotFilter === tab.id
+                      ? 'bg-[#BE123C] text-white'
+                      : 'text-[#644A52] hover:bg-[#FFF8F9] hover:text-[#241118]'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Filtered Meal Cards */}
+            <div className="space-y-3">
+              {currentPlan.meals
+                .filter((meal) => activeSlotFilter === 'all' || meal.slotId === activeSlotFilter)
+                .map((meal) => {
                 const isSlotRegenerating = regeneratingSlot === meal.slotId;
                 const isLogged = Boolean(loggedSlots[meal.slotId]);
                 return (

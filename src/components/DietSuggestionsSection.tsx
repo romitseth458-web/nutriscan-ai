@@ -14,50 +14,15 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
   if (!analysis || analysis.identificationStatus !== 'identified') {
     return (
       <section id="diet-guide" className="border-b border-[#EEDCE0] bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <h2 className="font-display text-xl font-bold text-[#241118]">
-                AI Diet Recommendations
-              </h2>
-              <p className="mt-1.5 max-w-2xl text-sm text-[#644A52]">
-                Once a meal is analyzed, RosoFood AI generates calorie-saving swaps, high-protein
-                enhancements, and vegetarian and non-vegetarian alternatives tailored to your dish.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-5">
-              <Salad className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
-              <h3 className="mt-3 font-display text-sm font-semibold text-[#241118]">
-                Healthier Alternatives
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#644A52]">
-                Lower-calorie preparation swaps and whole-food ingredient upgrades without
-                sacrificing flavor.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-5">
-              <Dumbbell className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
-              <h3 className="mt-3 font-display text-sm font-semibold text-[#241118]">
-                High-Protein Options
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#644A52]">
-                Targeted protein additions showing exact gram increases to improve satiety and
-                muscle recovery.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-5">
-              <Leaf className="h-5 w-5 text-[#15803D]" aria-hidden="true" />
-              <h3 className="mt-3 font-display text-sm font-semibold text-[#241118]">
-                Veg &amp; Non-Veg Plans
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#644A52]">
-                Balanced alternatives tailored for both vegetarian and non-vegetarian dietary
-                preferences.
-              </p>
-            </div>
+        <div className="mx-auto max-w-6xl px-3 py-4 sm:px-6 lg:px-8">
+          <div className="rounded-xl border border-[#EEDCE0] bg-[#FFF8F9] px-4 py-3">
+            <p className="font-display text-sm font-bold text-[#241118]">
+              AI Diet Recommendations
+            </p>
+            <p className="mt-0.5 text-xs text-[#644A52]">
+              Analyze a meal photo above to unlock calorie-saving swaps, high-protein add-ons, and
+              veg / non-veg alternatives.
+            </p>
           </div>
         </div>
       </section>
@@ -68,14 +33,14 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
 
   return (
     <section id="diet-guide" className="border-b border-[#EEDCE0] bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="mx-auto max-w-6xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
           <div className="max-w-2xl">
             <p className="text-xs font-medium text-[#BE123C]">Tailored Nutrition Guidance</p>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-[#241118]">
+            <h2 className="mt-0.5 font-display text-lg font-bold tracking-tight text-[#241118] sm:text-xl">
               AI Diet Suggestions for {analysis.mealTitle}
             </h2>
-            <p className="mt-2 text-sm leading-relaxed text-[#644A52]">
+            <p className="mt-1 text-xs leading-relaxed text-[#644A52] sm:text-sm">
               {dietSuggestions.summary}
             </p>
           </div>
@@ -109,20 +74,20 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
         </div>
 
         {/* Healthier Alternatives + High Protein Options */}
-        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* Healthier Alternatives */}
-          <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-6">
-            <div className="flex items-center gap-2.5">
-              <Salad className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
-              <h3 className="font-display text-base font-semibold text-[#241118]">
+          <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-4">
+            <div className="flex items-center gap-2">
+              <Salad className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
+              <h3 className="font-display text-sm font-semibold text-[#241118]">
                 Healthier Alternatives
               </h3>
             </div>
-            <div className="mt-4 divide-y divide-[#EEDCE0]">
+            <div className="mt-3 divide-y divide-[#EEDCE0]">
               {dietSuggestions.healthierAlternatives.map((alt, i) => (
-                <div key={`${alt.title}-${i}`} className="py-3.5 first:pt-0 last:pb-0">
+                <div key={`${alt.title}-${i}`} className="py-2.5 first:pt-0 last:pb-0">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-semibold text-[#241118]">{alt.title}</p>
+                    <p className="text-xs font-semibold text-[#241118] sm:text-sm">{alt.title}</p>
                     {alt.estimatedCalorieSavingsKcal > 0 && (
                       <span className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-[#15803D] tabular-nums whitespace-nowrap shrink-0">
                         <ArrowDownRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -130,32 +95,32 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-[#644A52]">{alt.reason}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-[#644A52]">{alt.reason}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* High-Protein Options */}
-          <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-6">
-            <div className="flex items-center gap-2.5">
-              <Dumbbell className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
-              <h3 className="font-display text-base font-semibold text-[#241118]">
+          <div className="rounded-2xl border border-[#EEDCE0] bg-[#FFF8F9] p-4">
+            <div className="flex items-center gap-2">
+              <Dumbbell className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
+              <h3 className="font-display text-sm font-semibold text-[#241118]">
                 High-Protein Food Options
               </h3>
             </div>
-            <div className="mt-4 divide-y divide-[#EEDCE0]">
+            <div className="mt-3 divide-y divide-[#EEDCE0]">
               {dietSuggestions.highProteinOptions.map((opt, i) => (
-                <div key={`${opt.title}-${i}`} className="py-3.5 first:pt-0 last:pb-0">
+                <div key={`${opt.title}-${i}`} className="py-2.5 first:pt-0 last:pb-0">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-semibold text-[#241118]">{opt.title}</p>
+                    <p className="text-xs font-semibold text-[#241118] sm:text-sm">{opt.title}</p>
                     {opt.proteinBoostGrams > 0 && (
                       <span className="font-mono text-xs font-semibold text-[#BE123C] tabular-nums whitespace-nowrap shrink-0">
                         +{opt.proteinBoostGrams} g protein
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-[#644A52]">{opt.description}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-[#644A52]">{opt.description}</p>
                 </div>
               ))}
             </div>
@@ -164,23 +129,23 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
 
         {/* Vegetarian & Non-Vegetarian Alternatives */}
         <div
-          className={`mt-6 grid grid-cols-1 gap-6 ${
+          className={`mt-4 grid grid-cols-1 gap-4 ${
             dietFilter === 'all' ? 'lg:grid-cols-2' : 'lg:grid-cols-1'
           }`}
         >
           {(dietFilter === 'all' || dietFilter === 'vegetarian') && (
-            <div className="rounded-2xl border border-[#EEDCE0] bg-white p-6">
-              <div className="flex items-center gap-2.5">
-                <Leaf className="h-5 w-5 text-[#15803D]" aria-hidden="true" />
-                <h3 className="font-display text-base font-semibold text-[#241118]">
+            <div className="rounded-2xl border border-[#EEDCE0] bg-white p-4">
+              <div className="flex items-center gap-2">
+                <Leaf className="h-4 w-4 text-[#15803D]" aria-hidden="true" />
+                <h3 className="font-display text-sm font-semibold text-[#241118]">
                   Vegetarian Alternatives
                 </h3>
               </div>
-              <div className="mt-4 divide-y divide-[#F6E9EC]">
+              <div className="mt-3 divide-y divide-[#F6E9EC]">
                 {dietSuggestions.vegetarianOptions.map((opt, i) => (
-                  <div key={`${opt.title}-${i}`} className="py-3 first:pt-0 last:pb-0">
-                    <p className="text-sm font-semibold text-[#241118]">{opt.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-[#644A52]">
+                  <div key={`${opt.title}-${i}`} className="py-2.5 first:pt-0 last:pb-0">
+                    <p className="text-xs font-semibold text-[#241118] sm:text-sm">{opt.title}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-[#644A52]">
                       {opt.description}
                     </p>
                   </div>
@@ -190,10 +155,10 @@ export function DietSuggestionsSection({ analysis }: DietSuggestionsSectionProps
           )}
 
           {(dietFilter === 'all' || dietFilter === 'non-vegetarian') && (
-            <div className="rounded-2xl border border-[#EEDCE0] bg-white p-6">
-              <div className="flex items-center gap-2.5">
-                <UtensilsCrossed className="h-5 w-5 text-[#BE123C]" aria-hidden="true" />
-                <h3 className="font-display text-base font-semibold text-[#241118]">
+            <div className="rounded-2xl border border-[#EEDCE0] bg-white p-4">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="h-4 w-4 text-[#BE123C]" aria-hidden="true" />
+                <h3 className="font-display text-sm font-semibold text-[#241118]">
                   Non-Vegetarian Alternatives
                 </h3>
               </div>

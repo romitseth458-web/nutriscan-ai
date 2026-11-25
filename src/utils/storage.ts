@@ -20,6 +20,18 @@ export function getLocalDateKey(date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+export function getPastLocalDateKeys(days: number, endDateKey?: string): string[] {
+  const [y, m, d] = (endDateKey || getLocalDateKey()).split('-').map(Number);
+  const anchor = new Date(y, (m || 1) - 1, d || 1);
+  const keys: string[] = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const dt = new Date(anchor);
+    dt.setDate(anchor.getDate() - i);
+    keys.push(getLocalDateKey(dt));
+  }
+  return keys;
+}
+
 export function loadTrackedMeals(): TrackedMealEntry[] {
   try {
     const raw = window.localStorage.getItem(MEALS_STORAGE_KEY);

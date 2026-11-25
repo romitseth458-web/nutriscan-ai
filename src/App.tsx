@@ -1,11 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
+  BarChart3,
+  BookOpen,
+  Camera,
   CheckCircle2,
+  ChefHat,
+  Droplets,
   Heart,
+  HelpCircle,
   Loader2,
+  Plus,
   RefreshCw,
   Share2,
+  Sparkles,
+  Utensils,
   WifiOff,
   X,
 } from 'lucide-react';
@@ -13,6 +22,9 @@ import { MotionConfig } from 'motion/react';
 import { useAuth } from './context/AuthContext';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { AuthScreen } from './components/AuthScreen';
+import { CollapsibleSection } from './components/CollapsibleSection';
+import { CompactDashboardOverview, type DashboardTab } from './components/CompactDashboardOverview';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { Navbar } from './components/Navbar';
 import { FoodUploadStudio } from './components/FoodUploadStudio';
 import { HowItWorksSection } from './components/HowItWorksSection';
@@ -66,7 +78,29 @@ import {
   DEFAULT_DAILY_GOALS,
   DEFAULT_WATER_GOAL_ML,
   getLocalDateKey,
+  getPastLocalDateKeys,
 } from './utils/storage';
+
+type CollapsibleKey =
+  | 'scanner'
+  | 'results'
+  | 'explorer'
+  | 'mealPlanner'
+  | 'foodDiary'
+  | 'waterTracker'
+  | 'weeklyReport'
+  | 'guideFaq';
+
+const INITIAL_SECTIONS: Record<CollapsibleKey, boolean> = {
+  scanner: false,
+  results: false,
+  explorer: false,
+  mealPlanner: false,
+  foodDiary: false,
+  waterTracker: false,
+  weeklyReport: false,
+  guideFaq: false,
+};
 
 export default function App() {
   const {
@@ -92,6 +126,10 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
   const [isCheckingVerify, setIsCheckingVerify] = useState(false);
+  const [isAddingQuickWater, setIsAddingQuickWater] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
+  const [openSections, setOpenSections] = useState<Record<CollapsibleKey, boolean>>(INITIAL_SECTIONS);
 
   const [trackedMeals, setTrackedMeals] = useState<TrackedMealEntry[]>([]);
   const [savedMealPlans, setSavedMealPlans] = useState<IndianMealPlan[]>([]);
@@ -184,6 +222,44 @@ export default function App() {
     };
   }, [authReady, user, user?.uid, user?.emailVerified]);
 
+  const dashboardMetrics = useMemo(() => {
+    const todayMeals = trackedMeals.filter((m) => m.dateKey === todayDateKey);
+    const todayCalories = Math.round(
+      todayMeals.reduce((sum, m) => sum + (m.analysis.totals.caloriesKcal || 0), 0)
+    );
+    const todayProtein =
+      Math.round(todayMeals.reduce((sum, m) => sum + (m.analysis.totals.proteinGrams || 0), 0) * 10) /
+      10;
+    const todayCarbs =
+      Math.round(todayMeals.reduce((sum, m) => sum + (m.analysis.totals.carbsGrams || 0), 0) * 10) /
+      10;
+    const todayFat =
+      Math.round(todayMeals.reduce((sum, m) => sum + (m.analysis.totals.fatGrams || 0), 0) * 10) / 10;
+    const todayFiber =
+      Math.round(todayMeals.reduce((sum, m) => sum + (m.analysis.totals.fiberGrams || 0), 0) * 10) /
+      10;
+
+    const todayWaterMl = waterLogs
+      .filter((w) => w.dateKey === todayDateKey)
+      .reduce((sum, w) => sum + (w.amountMl || 0), 0);
+
+    const last7Keys = new Set(getPastLocalDateKeys(7, todayDateKey));
+    const loggedDaySet = new Set(
+      trackedMeals.filter((m) => last7Keys.has(m.dateKey)).map((m) => m.dateKey)
+    );
+
+    return {
+      todayCalories,
+      todayProtein,
+      todayCarbs,
+      todayFat,
+      todayFiber,
+      todayMealsCount: todayMeals.length,
+      todayWaterMl,
+      weeklyLoggedDays: loggedDaySet.size,
+    };
+  }, [trackedMeals, waterLogs, todayDateKey]);
+
   function showToast(message: string) {
     setToastMessage(message);
     window.setTimeout(() => {
@@ -191,18 +267,40 @@ export default function App() {
     }, 3200);
   }
 
-  function scrollToSection(id: string) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  function scrollToElement(id: string) {
+    window.setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  }
+
+  function toggleSection(key: CollapsibleKey) {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function handleSelectTab(tab: DashboardTab) {
+    setActiveTab(tab);
+    if (tab === 'scanner') {
+      setOpenSections((prev) => ({ ...prev, scanner: true }));
     }
+    scrollToElement('workspace-anchor');
+  }
+
+  function openOverviewSection(key: CollapsibleKey, elementId: string) {
+    setActiveTab('overview');
+    setOpenSections((prev) => ({ ...prev, [key]: true }));
+    scrollToElement(elementId);
   }
 
   function handleNavbarUploadClick() {
-    scrollToSection('analyzer');
+    setActiveTab('scanner');
+    setOpenSections((prev) => ({ ...prev, scanner: true }));
+    scrollToElement('workspace-anchor');
     window.setTimeout(() => {
       fileInputRef.current?.click();
-    }, 220);
+    }, 180);
   }
 
   async function handleAnalyzeFood(image: PreparedFoodImage, clarification?: string) {
@@ -263,8 +361,9 @@ export default function App() {
       setActivePreviewUrl(image.previewDataUrl);
 
       if (payload.identificationStatus === 'identified') {
+        setOpenSections((prev) => ({ ...prev, results: true }));
         showToast(`Analysis complete: ${payload.mealTitle}`);
-        window.setTimeout(() => scrollToSection('results'), 150);
+        scrollToElement('results');
       }
     } catch (error) {
       const msg =
@@ -417,6 +516,18 @@ export default function App() {
     showToast(`Logged +${amountMl} ml water`);
   }
 
+  async function handleQuickAddWater250() {
+    if (isAddingQuickWater) return;
+    setIsAddingQuickWater(true);
+    try {
+      await handleAddWater(250, todayDateKey);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Unable to log water right now.');
+    } finally {
+      setIsAddingQuickWater(false);
+    }
+  }
+
   async function handleDeleteWaterEntry(entryId: string) {
     if (!user || !user.emailVerified) return;
     await deleteWaterLogForUser(user.uid, entryId);
@@ -443,7 +554,9 @@ export default function App() {
   function handleInspectEntry(entry: TrackedMealEntry) {
     setAnalysisResult(entry.analysis);
     setActivePreviewUrl(entry.imageThumbnailDataUrl || null);
-    scrollToSection('results');
+    setActiveTab('scanner');
+    setOpenSections((prev) => ({ ...prev, scanner: true, results: true }));
+    scrollToElement('results');
   }
 
   async function handleShareText(title: string, text: string, successToast: string) {
@@ -536,12 +649,129 @@ export default function App() {
     user.displayName ||
     user.email?.split('@')[0] ||
     'RosoFood Member';
+  const firstName = displayName.split(/\s+/)[0] || 'Friend';
   const email = userProfile?.email || user.email || '';
+  const hasIdentifiedResult = analysisResult?.identificationStatus === 'identified';
+
+  const renderFoodUploadStudio = () => (
+    <FoodUploadStudio
+      selectedImage={selectedImage}
+      onSelectImage={(img) => {
+        setSelectedImage(img);
+        if (img) {
+          setOpenSections((prev) => ({ ...prev, scanner: true }));
+        } else {
+          setActivePreviewUrl(null);
+        }
+        setAnalysisResult((prev) =>
+          prev && prev.identificationStatus !== 'identified' ? null : prev
+        );
+      }}
+      onAnalyze={handleAnalyzeFood}
+      isAnalyzing={isAnalyzing}
+      errorMessage={errorMessage}
+      onClearError={() => setErrorMessage(null)}
+      analysisResult={analysisResult}
+      fileInputRef={fileInputRef}
+      onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
+      onShowToast={showToast}
+    />
+  );
+
+  const renderFoodExplorer = () => (
+    <FoodExplorerSection
+      onInspectAnalysis={(analysis) => {
+        setAnalysisResult(analysis);
+        setActivePreviewUrl(null);
+        setOpenSections((prev) => ({ ...prev, results: true }));
+        showToast(`Loaded nutrition for ${analysis.mealTitle}`);
+        scrollToElement('results');
+      }}
+      onQuickLogFood={(analysis, category) => {
+        void persistMealEntry(category, analysis, '');
+      }}
+    />
+  );
+
+  const renderResultsAndDiet = () => (
+    <>
+      <ResultsDashboard
+        analysis={analysisResult}
+        imagePreviewUrl={activePreviewUrl}
+        dailyGoals={dailyGoals}
+        onAddToTracker={handleAddToTracker}
+        onShareMeal={handleShareMeal}
+        onJumpToUpload={handleNavbarUploadClick}
+      />
+      {hasIdentifiedResult && <DietSuggestionsSection analysis={analysisResult} />}
+    </>
+  );
+
+  const renderMealPlanner = () => (
+    <MealPlannerSection
+      dietProfile={userProfile?.dietProfile}
+      savedPlans={savedMealPlans}
+      isEmailVerified={Boolean(user.emailVerified)}
+      onSaveDietProfile={handleSaveDietProfile}
+      onSaveMealPlan={handleSaveMealPlan}
+      onDeleteMealPlan={handleDeleteMealPlan}
+      onLogPlannedMeal={async (category, analysis) => {
+        await persistMealEntry(category, analysis, '');
+      }}
+      onShowToast={showToast}
+    />
+  );
+
+  const renderFoodDiary = () => (
+    <DailyTrackerSection
+      entries={trackedMeals}
+      selectedDateKey={selectedDateKey}
+      onChangeDateKey={setSelectedDateKey}
+      dailyGoals={dailyGoals}
+      onUpdateGoals={(goals) => void handleUpdateGoals(goals)}
+      onOpenCalculator={() => setIsGoalCalcOpen(true)}
+      onDeleteEntry={(id) => void handleDeleteEntry(id)}
+      onClearDay={(dateKey) => void handleClearDay(dateKey)}
+      onInspectEntry={handleInspectEntry}
+      onJumpToUpload={handleNavbarUploadClick}
+      onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
+    />
+  );
+
+  const renderWaterTracker = () => (
+    <WaterTrackerSection
+      entries={waterLogs}
+      waterGoalMl={waterGoalMl}
+      todayDateKey={todayDateKey}
+      isEmailVerified={Boolean(user.emailVerified)}
+      onUpdateWaterGoal={handleUpdateWaterGoal}
+      onAddWater={handleAddWater}
+      onDeleteWaterEntry={handleDeleteWaterEntry}
+    />
+  );
+
+  const renderWeeklyReport = () => (
+    <WeeklyReportSection
+      meals={trackedMeals}
+      waterLogs={waterLogs}
+      dailyGoals={dailyGoals}
+      waterGoalMl={waterGoalMl}
+      todayDateKey={todayDateKey}
+      dietProfile={userProfile?.dietProfile}
+      savedReports={savedWeeklyReports}
+      isEmailVerified={Boolean(user.emailVerified)}
+      onSaveWeeklyReport={handleSaveWeeklyReport}
+      onDeleteWeeklyReport={handleDeleteWeeklyReport}
+      onShowToast={showToast}
+    />
+  );
 
   return (
     <MotionConfig reducedMotion="user">
-      <div id="top" className="min-h-screen flex flex-col bg-white text-[#241118]">
+      <div id="top" className="min-h-screen flex flex-col bg-[#FFF8F9] pb-14 text-[#241118] lg:pb-0">
         <Navbar
+          activeTab={activeTab}
+          onSelectTab={handleSelectTab}
           onUploadClick={handleNavbarUploadClick}
           onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
           onShowToast={showToast}
@@ -555,9 +785,9 @@ export default function App() {
         {!user.emailVerified && (
           <div
             role="status"
-            className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-950"
+            className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 sm:px-4"
           >
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
                 <span>
@@ -575,7 +805,7 @@ export default function App() {
                         showToast(e instanceof Error ? e.message : 'Unable to send email')
                       )
                   }
-                  className="rounded-lg border border-amber-300 bg-white px-3 py-1 font-semibold text-amber-950 hover:bg-amber-100 cursor-pointer"
+                  className="rounded-lg border border-amber-300 bg-white px-2.5 py-1 font-semibold text-amber-950 hover:bg-amber-100 cursor-pointer"
                 >
                   Resend Email
                 </button>
@@ -583,7 +813,7 @@ export default function App() {
                   type="button"
                   disabled={isCheckingVerify}
                   onClick={() => void handleRefreshVerifyBanner()}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#241118] px-3 py-1 font-semibold text-white hover:bg-[#3A1E28] disabled:opacity-50 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#241118] px-2.5 py-1 font-semibold text-white hover:bg-[#3A1E28] disabled:opacity-50 cursor-pointer"
                 >
                   <RefreshCw
                     className={`h-3 w-3 ${isCheckingVerify ? 'animate-spin' : ''}`}
@@ -600,164 +830,250 @@ export default function App() {
           <div
             role="status"
             aria-live="polite"
-            className="border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-center text-xs font-medium text-amber-950"
+            className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs font-medium text-amber-950"
           >
             <span className="inline-flex items-center gap-2">
               <WifiOff className="h-3.5 w-3.5 text-amber-700" aria-hidden="true" />
-              Offline Mode — Saved Daily Diary meals and the Food &amp; Fruit Directory remain
-              available. Internet is required for new AI scans.
+              Offline Mode — Saved Daily Diary meals and Food Explorer remain available.
             </span>
           </div>
         )}
 
         <main className="flex-1">
-          <FoodUploadStudio
-            selectedImage={selectedImage}
-            onSelectImage={(img) => {
-              setSelectedImage(img);
-              if (!img) {
-                setActivePreviewUrl(null);
-              }
-              setAnalysisResult((prev) =>
-                prev && prev.identificationStatus !== 'identified' ? null : prev
-              );
-            }}
-            onAnalyze={handleAnalyzeFood}
-            isAnalyzing={isAnalyzing}
-            errorMessage={errorMessage}
-            onClearError={() => setErrorMessage(null)}
-            analysisResult={analysisResult}
-            fileInputRef={fileInputRef}
-            onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
-            onShowToast={showToast}
-          />
-
-          <HowItWorksSection onOpenCalculator={() => setIsGoalCalcOpen(true)} />
-
-          <FoodExplorerSection
-            onInspectAnalysis={(analysis) => {
-              setAnalysisResult(analysis);
-              setActivePreviewUrl(null);
-              showToast(`Loaded nutrition for ${analysis.mealTitle}`);
-              scrollToSection('results');
-            }}
-            onQuickLogFood={(analysis, category) => {
-              void persistMealEntry(category, analysis, '');
-            }}
-          />
-
-          <ResultsDashboard
-            analysis={analysisResult}
-            imagePreviewUrl={activePreviewUrl}
-            dailyGoals={dailyGoals}
-            onAddToTracker={handleAddToTracker}
-            onShareMeal={handleShareMeal}
-            onJumpToUpload={() => scrollToSection('analyzer')}
-          />
-
-          <DietSuggestionsSection analysis={analysisResult} />
-
-          <MealPlannerSection
-            dietProfile={userProfile?.dietProfile}
-            savedPlans={savedMealPlans}
-            isEmailVerified={Boolean(user.emailVerified)}
-            onSaveDietProfile={handleSaveDietProfile}
-            onSaveMealPlan={handleSaveMealPlan}
-            onDeleteMealPlan={handleDeleteMealPlan}
-            onLogPlannedMeal={async (category, analysis) => {
-              await persistMealEntry(category, analysis, '');
-            }}
-            onShowToast={showToast}
-          />
-
-          <DailyTrackerSection
-            entries={trackedMeals}
-            selectedDateKey={selectedDateKey}
-            onChangeDateKey={setSelectedDateKey}
-            dailyGoals={dailyGoals}
-            onUpdateGoals={(goals) => void handleUpdateGoals(goals)}
-            onOpenCalculator={() => setIsGoalCalcOpen(true)}
-            onDeleteEntry={(id) => void handleDeleteEntry(id)}
-            onClearDay={(dateKey) => void handleClearDay(dateKey)}
-            onInspectEntry={handleInspectEntry}
-            onJumpToUpload={() => scrollToSection('analyzer')}
+          <CompactDashboardOverview
+            firstName={firstName}
+            todayDateKey={todayDateKey}
+            todayCalories={dashboardMetrics.todayCalories}
+            calorieGoal={dailyGoals.caloriesKcal}
+            todayProtein={dashboardMetrics.todayProtein}
+            proteinGoal={dailyGoals.proteinGrams}
+            todayCarbs={dashboardMetrics.todayCarbs}
+            todayFat={dashboardMetrics.todayFat}
+            todayFiber={dashboardMetrics.todayFiber}
+            todayMealsCount={dashboardMetrics.todayMealsCount}
+            todayWaterMl={dashboardMetrics.todayWaterMl}
+            waterGoalMl={waterGoalMl}
+            weeklyLoggedDays={dashboardMetrics.weeklyLoggedDays}
+            savedPlansCount={savedMealPlans.length}
+            activeTab={activeTab}
+            onSelectTab={handleSelectTab}
+            onQuickScanMeal={handleNavbarUploadClick}
+            onQuickAddWater250={() => void handleQuickAddWater250()}
+            isAddingQuickWater={isAddingQuickWater}
             onOpenVoiceAssistant={() => setIsVoiceAssistantOpen(true)}
           />
 
-          <WaterTrackerSection
-            entries={waterLogs}
-            waterGoalMl={waterGoalMl}
-            todayDateKey={todayDateKey}
-            isEmailVerified={Boolean(user.emailVerified)}
-            onUpdateWaterGoal={handleUpdateWaterGoal}
-            onAddWater={handleAddWater}
-            onDeleteWaterEntry={handleDeleteWaterEntry}
-          />
+          <div id="workspace-anchor" className="scroll-mt-14">
+            {activeTab === 'overview' && (
+              <div className="mx-auto max-w-6xl space-y-3 px-3 py-4 sm:px-6 lg:px-8">
+                <CollapsibleSection
+                  id="analyzer"
+                  title="Food Scanner & Meal Analyzer"
+                  summaryText={
+                    hasIdentifiedResult
+                      ? `Last scan: ${analysisResult.mealTitle} (${analysisResult.totals.caloriesKcal} kcal)`
+                      : 'Upload photo, camera snap, or try Indian sample plates'
+                  }
+                  icon={<Camera className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.scanner}
+                  onToggle={() => toggleSection('scanner')}
+                  quickAction={
+                    <button
+                      type="button"
+                      onClick={handleNavbarUploadClick}
+                      className="min-h-[36px] rounded-lg bg-[#BE123C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239] cursor-pointer"
+                    >
+                      Scan
+                    </button>
+                  }
+                >
+                  {renderFoodUploadStudio()}
+                </CollapsibleSection>
 
-          <WeeklyReportSection
-            meals={trackedMeals}
-            waterLogs={waterLogs}
-            dailyGoals={dailyGoals}
-            waterGoalMl={waterGoalMl}
-            todayDateKey={todayDateKey}
-            dietProfile={userProfile?.dietProfile}
-            savedReports={savedWeeklyReports}
-            isEmailVerified={Boolean(user.emailVerified)}
-            onSaveWeeklyReport={handleSaveWeeklyReport}
-            onDeleteWeeklyReport={handleDeleteWeeklyReport}
-            onShowToast={showToast}
-          />
+                {hasIdentifiedResult && (
+                  <CollapsibleSection
+                    id="results-accordion"
+                    title={`Scan Results: ${analysisResult.mealTitle}`}
+                    summaryText={`${analysisResult.totals.caloriesKcal} kcal · P ${analysisResult.totals.proteinGrams}g · C ${analysisResult.totals.carbsGrams}g · F ${analysisResult.totals.fatGrams}g`}
+                    icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
+                    isOpen={openSections.results}
+                    onToggle={() => toggleSection('results')}
+                  >
+                    {renderResultsAndDiet()}
+                  </CollapsibleSection>
+                )}
 
-          <FaqSection />
+                <CollapsibleSection
+                  id="food-directory"
+                  title="Food & Fruit Explorer"
+                  summaryText="70+ Indian & global foods with instant AI nutrition lookup"
+                  icon={<BookOpen className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.explorer}
+                  onToggle={() => toggleSection('explorer')}
+                >
+                  {renderFoodExplorer()}
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  id="meal-planner"
+                  title="AI Personalized Meal Planner"
+                  summaryText={
+                    savedMealPlans.length > 0
+                      ? `${savedMealPlans.length} saved Indian ${savedMealPlans.length === 1 ? 'plan' : 'plans'} · 5 daily meals`
+                      : 'Generate a 5-meal Indian plan by budget & fitness goal'
+                  }
+                  icon={<ChefHat className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.mealPlanner}
+                  onToggle={() => toggleSection('mealPlanner')}
+                >
+                  {renderMealPlanner()}
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  id="daily-tracker"
+                  title="Daily Food Diary"
+                  summaryText={`${dashboardMetrics.todayMealsCount} ${dashboardMetrics.todayMealsCount === 1 ? 'meal' : 'meals'} today · ${dashboardMetrics.todayCalories} / ${dailyGoals.caloriesKcal} kcal`}
+                  icon={<Utensils className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.foodDiary}
+                  onToggle={() => toggleSection('foodDiary')}
+                >
+                  {renderFoodDiary()}
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  id="water-tracker"
+                  title="Daily Water Intake Tracker"
+                  summaryText={`${dashboardMetrics.todayWaterMl.toLocaleString()} / ${waterGoalMl.toLocaleString()} ml today`}
+                  icon={<Droplets className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.waterTracker}
+                  onToggle={() => toggleSection('waterTracker')}
+                  quickAction={
+                    <button
+                      type="button"
+                      disabled={isAddingQuickWater}
+                      onClick={() => void handleQuickAddWater250()}
+                      className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-[#BE123C]/30 bg-[#FDF2F4] px-2.5 py-1.5 font-mono text-xs font-semibold text-[#BE123C] hover:bg-[#FCE7EB] disabled:opacity-50 cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3" aria-hidden="true" />
+                      250 ml
+                    </button>
+                  }
+                >
+                  {renderWaterTracker()}
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  id="weekly-report"
+                  title="AI Weekly Nutrition Report"
+                  summaryText={`${dashboardMetrics.weeklyLoggedDays}/7 days logged · ${savedWeeklyReports.length} saved reports`}
+                  icon={<BarChart3 className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.weeklyReport}
+                  onToggle={() => toggleSection('weeklyReport')}
+                >
+                  {renderWeeklyReport()}
+                </CollapsibleSection>
+
+                <CollapsibleSection
+                  id="faq"
+                  title="How It Works & FAQ"
+                  summaryText="Calorie goal calculator, scanning tips & privacy FAQ"
+                  icon={<HelpCircle className="h-4 w-4" aria-hidden="true" />}
+                  isOpen={openSections.guideFaq}
+                  onToggle={() => toggleSection('guideFaq')}
+                >
+                  <HowItWorksSection onOpenCalculator={() => setIsGoalCalcOpen(true)} />
+                  <FaqSection />
+                </CollapsibleSection>
+              </div>
+            )}
+
+            {activeTab === 'scanner' && (
+              <div>
+                {renderFoodUploadStudio()}
+                {renderResultsAndDiet()}
+                {renderFoodExplorer()}
+              </div>
+            )}
+
+            {activeTab === 'meal-planner' && renderMealPlanner()}
+
+            {activeTab === 'food-diary' && renderFoodDiary()}
+
+            {activeTab === 'water-tracker' && renderWaterTracker()}
+
+            {activeTab === 'weekly-report' && renderWeeklyReport()}
+          </div>
         </main>
 
-        {/* Footer */}
+        {/* Compact Footer */}
         <footer className="border-t border-[#EEDCE0] bg-white">
-          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-            <div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-start">
+          <div className="mx-auto max-w-6xl px-3 py-6 sm:px-6 lg:px-8">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
               <div className="max-w-sm">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#BE123C] text-white">
-                    <Heart className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
+                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#BE123C] text-white">
+                    <Heart className="h-3 w-3 fill-current" aria-hidden="true" />
                   </span>
-                  <span className="font-display text-base font-bold text-[#241118]">
+                  <span className="font-display text-sm font-bold text-[#241118]">
                     RosoFood AI
                   </span>
                 </div>
-                <p className="mt-2.5 text-xs leading-relaxed text-[#7E6069]">
-                  Crafted with love for everyday mindful eating. All calorie and macro numbers are
-                  AI estimates for wellness awareness, not medical advice.
+                <p className="mt-1.5 text-xs leading-relaxed text-[#7E6069]">
+                  Crafted for mindful everyday eating. Calorie and macro figures are AI estimates
+                  for wellness awareness, not medical advice.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-xs font-medium text-[#644A52]">
-                <a href="#analyzer" className="hover:text-[#241118]">
-                  Food Scanner
-                </a>
-                <a href="#food-directory" className="hover:text-[#241118]">
-                  Foods &amp; Fruits
-                </a>
-                <a href="#meal-planner" className="hover:text-[#241118]">
-                  AI Meal Planner
-                </a>
-                <a href="#water-tracker" className="hover:text-[#241118]">
-                  Water Tracker
-                </a>
-                <a href="#weekly-report" className="hover:text-[#241118]">
-                  Weekly Report
-                </a>
-                <a href="#results" className="hover:text-[#241118]">
-                  Nutrition Dashboard
-                </a>
-                <a href="#diet-guide" className="hover:text-[#241118]">
-                  Diet Suggestions
-                </a>
-                <a href="#daily-tracker" className="hover:text-[#241118]">
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-[#644A52]">
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('scanner')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
+                  Scanner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openOverviewSection('explorer', 'food-directory')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
+                  Food Explorer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('meal-planner')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
+                  Meal Planner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('food-diary')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
                   Food Diary
-                </a>
-                <a href="#faq" className="hover:text-[#241118]">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('water-tracker')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
+                  Water
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('weekly-report')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
+                  Weekly Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openOverviewSection('guideFaq', 'faq')}
+                  className="hover:text-[#241118] cursor-pointer"
+                >
                   FAQ
-                </a>
+                </button>
                 <button
                   type="button"
                   onClick={() =>
@@ -767,9 +1083,9 @@ export default function App() {
                       'Website link copied to clipboard'
                     )
                   }
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-3 py-1.5 text-xs font-semibold text-[#BE123C] hover:bg-[#FDF2F4] cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-2.5 py-1 text-xs font-semibold text-[#BE123C] hover:bg-[#FDF2F4] cursor-pointer"
                 >
-                  <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Share2 className="h-3 w-3" aria-hidden="true" />
                   Copy Link
                 </button>
                 <a
@@ -778,14 +1094,14 @@ export default function App() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#BE123C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#9F1239]"
+                  className="inline-flex items-center gap-1 rounded-lg bg-[#BE123C] px-2.5 py-1 text-xs font-semibold text-white hover:bg-[#9F1239]"
                 >
-                  Share on WhatsApp
+                  WhatsApp
                 </a>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col justify-between gap-2 border-t border-[#F6E9EC] pt-6 text-xs text-[#7E6069] sm:flex-row sm:items-center">
+            <div className="mt-4 flex flex-col justify-between gap-2 border-t border-[#F6E9EC] pt-4 text-[11px] text-[#7E6069] sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-2">
                 <span>© {new Date().getFullYear()} RosoFood AI</span>
                 <span aria-hidden="true">·</span>
@@ -796,12 +1112,14 @@ export default function App() {
           </div>
         </footer>
 
+        <MobileBottomNav activeTab={activeTab} onSelectTab={handleSelectTab} />
+
         <GoalCalculatorModal
           isOpen={isGoalCalcOpen}
           onClose={() => setIsGoalCalcOpen(false)}
           onApplyGoals={(newGoals) => {
             void handleUpdateGoals(newGoals);
-            scrollToSection('daily-tracker');
+            handleSelectTab('food-diary');
           }}
         />
 
@@ -833,7 +1151,7 @@ export default function App() {
           <div
             role="status"
             aria-live="polite"
-            className="fixed right-4 bottom-4 z-50 flex items-center gap-2.5 rounded-xl border border-[#BE123C]/25 bg-[#241118] px-4 py-3 text-sm font-medium text-white shadow-lg"
+            className="fixed right-3 bottom-16 z-50 flex items-center gap-2.5 rounded-xl border border-[#BE123C]/25 bg-[#241118] px-4 py-3 text-xs font-medium text-white shadow-lg sm:right-4 sm:text-sm lg:bottom-4"
           >
             <CheckCircle2 className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
             <span>{toastMessage}</span>

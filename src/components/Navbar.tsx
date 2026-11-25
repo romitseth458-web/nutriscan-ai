@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Heart, LogOut, Menu, PhoneCall, User as UserIcon, X } from 'lucide-react';
+import type { DashboardTab } from './CompactDashboardOverview';
 import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
+  activeTab: DashboardTab;
+  onSelectTab: (tab: DashboardTab) => void;
   onUploadClick: () => void;
   onOpenVoiceAssistant: () => void;
   onShowToast?: (message: string) => void;
@@ -13,18 +16,18 @@ interface NavbarProps {
   onLogout: () => void;
 }
 
-const NAV_LINKS = [
-  { href: '#analyzer', label: 'Scanner' },
-  { href: '#food-directory', label: 'Foods & Fruits' },
-  { href: '#meal-planner', label: 'Meal Planner' },
-  { href: '#water-tracker', label: 'Water' },
-  { href: '#weekly-report', label: 'Weekly' },
-  { href: '#results', label: 'Nutrition' },
-  { href: '#daily-tracker', label: 'Food Diary' },
-  { href: '#faq', label: 'FAQ' },
+const NAV_TABS: { tab: DashboardTab; label: string }[] = [
+  { tab: 'overview', label: 'Overview' },
+  { tab: 'scanner', label: 'Scanner' },
+  { tab: 'meal-planner', label: 'Meal Plan' },
+  { tab: 'food-diary', label: 'Diary' },
+  { tab: 'water-tracker', label: 'Water' },
+  { tab: 'weekly-report', label: 'Weekly' },
 ];
 
 export function Navbar({
+  activeTab,
+  onSelectTab,
   onUploadClick,
   onOpenVoiceAssistant,
   onShowToast,
@@ -40,32 +43,44 @@ export function Navbar({
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#EEDCE0] bg-white/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-3 sm:px-6 lg:px-8">
         {/* Zone 1: Brand wordmark */}
-        <a
-          href="#top"
-          className="inline-flex items-center gap-2.5 text-lg font-bold tracking-tight text-[#241118] whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 rounded-md"
+        <button
+          type="button"
+          onClick={() => {
+            onSelectTab('overview');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="inline-flex items-center gap-2 text-base font-bold tracking-tight text-[#241118] whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 rounded-md cursor-pointer"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#BE123C] text-white">
-            <Heart className="h-4 w-4 fill-current" aria-hidden="true" />
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#BE123C] text-white">
+            <Heart className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
           </span>
           <span className="font-display">RosoFood AI</span>
-        </a>
+        </button>
 
         {/* Zone 2: Navigation links */}
         <nav
           aria-label="Primary navigation"
-          className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-sm font-medium text-[#644A52]"
+          className="hidden lg:flex items-center gap-4 text-sm font-medium text-[#644A52]"
         >
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="hover:text-[#241118] hover:underline underline-offset-4 decoration-rose-700/50 transition-colors whitespace-nowrap shrink-0"
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_TABS.map((item) => {
+            const isActive = activeTab === item.tab;
+            return (
+              <button
+                key={item.tab}
+                type="button"
+                onClick={() => onSelectTab(item.tab)}
+                className={`py-1 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                  isActive
+                    ? 'font-semibold text-[#BE123C] underline underline-offset-4 decoration-[#BE123C]'
+                    : 'hover:text-[#241118] hover:underline underline-offset-4 decoration-rose-700/50'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </nav>
 
         {/* Zone 3: Primary action + Profile + mobile menu */}
@@ -73,7 +88,7 @@ export function Navbar({
           <button
             type="button"
             onClick={onOpenVoiceAssistant}
-            className="hidden sm:inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-3 py-2 text-xs font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FDF2F4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 whitespace-nowrap shrink-0 cursor-pointer"
+            className="hidden sm:inline-flex min-h-[38px] items-center gap-1.5 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-2.5 py-1.5 text-xs font-semibold text-[#BE123C] transition-colors duration-150 hover:bg-[#FDF2F4] whitespace-nowrap shrink-0 cursor-pointer"
           >
             <PhoneCall className="h-3.5 w-3.5" aria-hidden="true" />
             AI Diet Call
@@ -82,7 +97,7 @@ export function Navbar({
           <button
             type="button"
             onClick={onUploadClick}
-            className="min-h-[40px] rounded-lg bg-[#BE123C] px-3.5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#9F1239] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-700 focus-visible:ring-offset-2 whitespace-nowrap shrink-0 cursor-pointer"
+            className="min-h-[38px] rounded-lg bg-[#BE123C] px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-150 hover:bg-[#9F1239] whitespace-nowrap shrink-0 cursor-pointer sm:text-sm sm:px-3.5"
           >
             Scan Meal
           </button>
@@ -92,7 +107,7 @@ export function Navbar({
             onClick={onOpenProfile}
             title={`${userDisplayName} (${userEmail})`}
             aria-label="Open profile and account settings"
-            className="inline-flex min-h-[40px] max-w-[155px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-2.5 py-1.5 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] cursor-pointer"
+            className="inline-flex min-h-[38px] max-w-[140px] items-center gap-2 rounded-lg border border-[#E5CFD4] bg-[#FFF8F9] px-2 py-1 text-xs font-semibold text-[#241118] transition-colors hover:bg-[#FDF2F4] cursor-pointer"
           >
             {userPhotoUrl ? (
               <img
@@ -114,7 +129,7 @@ export function Navbar({
             onClick={() => setMobileMenuOpen((prev) => !prev)}
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open navigation menu'}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#EEDCE0] text-[#241118] hover:bg-[#FDF3F5] md:hidden cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#EEDCE0] text-[#241118] hover:bg-[#FDF3F5] lg:hidden cursor-pointer"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -125,18 +140,25 @@ export function Navbar({
       {mobileMenuOpen && (
         <nav
           aria-label="Mobile navigation"
-          className="border-t border-[#EEDCE0] bg-white px-4 py-3 md:hidden"
+          className="border-t border-[#EEDCE0] bg-white px-4 py-3 lg:hidden"
         >
           <div className="flex flex-col space-y-1">
-            {NAV_LINKS.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex min-h-[44px] items-center rounded-lg px-3 text-sm font-medium text-[#241118] hover:bg-[#FDF3F5]"
+            {NAV_TABS.map((item) => (
+              <button
+                key={item.tab}
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onSelectTab(item.tab);
+                }}
+                className={`flex min-h-[44px] items-center rounded-lg px-3 text-left text-sm font-medium cursor-pointer ${
+                  activeTab === item.tab
+                    ? 'bg-[#FDF2F4] font-semibold text-[#BE123C]'
+                    : 'text-[#241118] hover:bg-[#FDF3F5]'
+                }`}
               >
-                {link.label}
-              </a>
+                {item.label}
+              </button>
             ))}
             <button
               type="button"
